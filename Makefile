@@ -21,11 +21,11 @@ BUILDEXTENS = exe
 .PHONY: all
 all: $(BIN)/app.$(BUILDEXTENS)
 
-$(BIN)/app.$(BUILDEXTENS): $(APP) $(SRC)/*.c $(SRC)/**/.c 
- 	$(CC) $(CFLAGS) -o $@ $^ -I$(INCLUDE) -lrt
+$(BIN)/app.$(BUILDEXTENS): $(APP) $(SRC)/*.c
+	$(CC) $(CFLAGS) -o $@ $^ -I$(INCLUDE) -lrt
 
 .PHONY: run
-tx:
+run:
 	./$(BIN)/app.$(BUILDEXTENS)
 
 .PHONY: clean
