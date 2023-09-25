@@ -1,0 +1,8 @@
+//add the include folder to the default include path on vscode
+{
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/include/**"
+    ],
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+}
