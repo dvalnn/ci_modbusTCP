@@ -1,12 +1,46 @@
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "../include/modbusTCP.h"
 
-// open a TCP socket
-// return the socket if success, -1 if error
+#include "../include/log.h"
+
+// create a non-blocking TCP socket
 int openTCPSocket() {
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
     if (socketfd < 0) {
+        ERROR("cannot open socket\n");
         return -1;
     }
+
+    // int flags = fcntl(socketfd, F_GETFL, 0);
+    // if (flags < 0) {
+    //     ERROR("cannot get socket flags\n");
+    //     return -1;
+    // }
+
+    // if (fcntl(socketfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+    //     ERROR("cannot set socket flags\n");
+    //     return -1;
+    // }
+
+    // set timeout
+    struct timeval timeout;
+    timeout.tv_sec = 3;
+    timeout.tv_usec = 0;
+
+    if (setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
+        ERROR("cannot set socket timeout\n");
+        return -1;
+    }
+
     return socketfd;
 }
 
@@ -21,25 +55,29 @@ int connectToServer(int socketfd, char* ip, int port) {
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
-    inet_aton(ip, &server.sin_addr);
 
-    if (connect(socketfd, (struct sockaddr*)&server, sizeof(server)) < 0) {
+    printf("Connecting to %s:%d\n", ip, port);
+
+    // convert IPv4 addresses from text to binary form
+    if (inet_aton(ip, &server.sin_addr) == 0) {
+        ERROR("invalid IP address\n");
         return -1;
     }
 
-    return 0;
+    return connect(socketfd, (struct sockaddr*)&server, sizeof(server));
 }
 
 // connect to the modbus server through TCP
 int connectToModbusTCP(char* ip, int port) {
     int socketfd = openTCPSocket();
     if (socketfd < 0) {
-        printf("Cannot open socket\n");
+        ERROR("cannot open socket\n");
         return -1;
     }
 
     if (connectToServer(socketfd, ip, port) < 0) {
-        printf("Cannot connect to server\n");
+        closeTCPSocket(socketfd);
+        ERROR("cannot connect to server\n");
         return -1;
     }
 
@@ -68,9 +106,11 @@ int sendModbusRequestTCP(int socket, char* request, int requestLength) {
 
 // receive a modbus response through TCP
 // return 0 if success, -1 if error
+// timeout the receive call after 1 second
 int receiveModbusResponseTCP(int socket, char* response, int responseLength) {
     int received = 0;
     int n = 0;
+
     while (received < responseLength) {
         n = recv(socket, response + received, responseLength - received, 0);
         if (n < 0) {

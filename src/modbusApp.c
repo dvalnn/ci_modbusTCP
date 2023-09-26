@@ -1,5 +1,7 @@
 #include "../include/modbusApp.h"
 
+#include "../include/log.h"
+
 int sendModbusRequest(modbusTcpPacket request, int socketfd) {
     // flatten request to a string compatible with send()
     char mbapHeaderString[MODBUS_MBAP_HEADER_SIZE];
@@ -16,8 +18,11 @@ int sendModbusRequest(modbusTcpPacket request, int socketfd) {
     requestString = sdscatlen(requestString, &request.pdu.fCode, sizeof(request.pdu.fCode));
     requestString = sdscatlen(requestString, &request.pdu.data, sizeof(request.pdu.byteCount));
 
-    // send request
-    return sendModbusRequestTCP(socketfd, requestString, sdslen(requestString));
+    // send request and free memory
+    int result = sendModbusRequestTCP(socketfd, requestString, sdslen(requestString));
+    sdsfree(requestString);
+
+    return result;
 }
 
 int receiveModbusResponse(int socketfd, uint16_t transactionID, sds data) {
@@ -25,7 +30,7 @@ int receiveModbusResponse(int socketfd, uint16_t transactionID, sds data) {
     char responseBuffer[MODBUS_ADU_MAX_SIZE];
 
     if (receiveModbusResponseTCP(socketfd, responseBuffer, MODBUS_ADU_MAX_SIZE) < 0) {
-        fprintf(stderr, "Error: failed to receive response\n");
+        ERROR("failed to receive response\n");
         return -1;
     }
 
@@ -39,7 +44,7 @@ int receiveModbusResponse(int socketfd, uint16_t transactionID, sds data) {
 
     // check transaction ID
     if (response.mbapHeader.transactionIdentifier != transactionID) {
-        fprintf(stderr, "Error: transaction ID mismatch\n");
+        ERROR("transaction ID mismatch\n");
         return -1;
     }
 
@@ -59,20 +64,23 @@ int receiveModbusResponse(int socketfd, uint16_t transactionID, sds data) {
 // read holding registers and return the response
 // return -1 if error, 0 if success
 int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity) {
+    if (socketfd < 0) {
+        ERROR("invalid socket\n");
+        return -1;
+    }
+
     if (quantity < MODBUS_REG_QUANTITY_MIN || quantity > MODBUS_REG_QUANTITY_MAX) {
-        fprintf(stderr, "Error: quantity must be between %d and %d\n", MODBUS_REG_QUANTITY_MIN,
-                MODBUS_REG_QUANTITY_MAX);
+        ERROR("quantity must be between %d and %d\n", MODBUS_REG_QUANTITY_MIN, MODBUS_REG_QUANTITY_MAX);
         return -1;
     }
 
     if (startingAddress < MODBUS_ADDRESS_MIN || startingAddress > MODBUS_ADDRESS_MAX) {
-        fprintf(stderr, "Error: starting address must be between %d and %d\n", MODBUS_ADDRESS_MIN,
-                MODBUS_ADDRESS_MAX);
+        ERROR("starting address must be between %d and %d\n", MODBUS_ADDRESS_MIN, MODBUS_ADDRESS_MAX);
         return -1;
     }
 
     if (startingAddress + quantity > MODBUS_ADDRESS_MAX) {
-        fprintf(stderr, "Error: starting address + quantity must be less than %d\n", MODBUS_ADDRESS_MAX);
+        ERROR("starting address + quantity must be less than %d\n", MODBUS_ADDRESS_MAX);
         return -1;
     }
 
@@ -97,14 +105,14 @@ int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quanti
 
     // send request
     if (sendModbusRequest(message, socketfd) < 0) {
-        fprintf(stderr, "Error: failed to send request\n");
+        ERROR("failed to send request\n");
         return -1;
     }
 
     // receive response as a data string
     sds response = sdsempty();
     if (receiveModbusResponse(socketfd, message.mbapHeader.transactionIdentifier, response) < 0) {
-        fprintf(stderr, "Error: failed to receive response\n");
+        ERROR("failed to receive response\n");
         return -1;
     }
 
