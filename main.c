@@ -1,7 +1,9 @@
 #include <stdio.h>
 
 #include "include/modbusTCP.h"
+
 #include "include/sds.h"
+#include "include/sdsalloc.h"
 
 #define MODBUS_TCP_MAX_ADU_LENGTH 260
 
