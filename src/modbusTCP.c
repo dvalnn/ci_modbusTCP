@@ -20,21 +20,10 @@ int openTCPSocket() {
         return -1;
     }
 
-    // int flags = fcntl(socketfd, F_GETFL, 0);
-    // if (flags < 0) {
-    //     ERROR("cannot get socket flags\n");
-    //     return -1;
-    // }
-
-    // if (fcntl(socketfd, F_SETFL, flags | O_NONBLOCK) < 0) {
-    //     ERROR("cannot set socket flags\n");
-    //     return -1;
-    // }
-
     // set timeout
     struct timeval timeout;
-    timeout.tv_sec = 3;
-    timeout.tv_usec = 0;
+    timeout.tv_sec = MODBUS_TIMEOUT_SEC;
+    timeout.tv_usec = MODBUS_TIMEOUT_USEC;
 
     if (setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
         ERROR("cannot set socket timeout\n");
@@ -81,6 +70,7 @@ int connectToModbusTCP(char* ip, int port) {
         return -1;
     }
 
+    printf("Connected to %s:%d successfully\n", ip, port);
     return socketfd;
 }
 
@@ -109,14 +99,21 @@ int sendModbusRequestTCP(int socket, char* request, int requestLength) {
 // timeout the receive call after 1 second
 int receiveModbusResponseTCP(int socket, char* response, int responseLength) {
     int received = 0;
-    int n = 0;
 
-    while (received < responseLength) {
-        n = recv(socket, response + received, responseLength - received, 0);
-        if (n < 0) {
-            return -1;
-        }
-        received += n;
+    // int n = 0;
+    // while (received < responseLength) {
+    //     n = recv(socket, response + received, responseLength - received, 0);
+    //     if (n < 0) {
+    //         return -1;
+    //     }
+    //     received += n;
+    // }
+
+    received = recv(socket, response, responseLength, 0);
+    if (received < 0) {
+        ERROR("Server response timeout\n");
+        return -1;
     }
+
     return 0;
 }

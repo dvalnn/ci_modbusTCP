@@ -44,7 +44,7 @@ typedef struct t_modbusPDU {
 typedef struct t_modbusADU {
     modbusPDU pdu;
     modbusMBAP mbapHeader;
-} modbusTcpPacket;
+} modbusPacketTCP;
 
 #define openModbusConnection(ipString, port) connectToModbusTCP(ipString, port)
 #define closeModbusConnection(intSocketFD) disconnectFromModbusTCP(intSocketFD)
