@@ -16,9 +16,12 @@
 #define MODBUS_REG_QUANTITY_MIN 0x0001  // 1
 #define MODBUS_REG_QUANTITY_MAX 0x007D  // 125
 
+#define MODBUS_ADU_MAX_SIZE 260
 #define MODBUS_PDU_MAX_SIZE 253
 #define MODBUS_DATA_MAX_SIZE 252
+
 #define MODBUS_MBAP_HEADER_SIZE 7
+
 typedef enum t_functionCode {
     readHoldingRegsFuncCode = 0x03,    // 3
     writeMultipleRegsFuncCode = 0x10,  // 16
@@ -42,15 +45,10 @@ typedef struct t_modbusADU {
     modbusMBAP mbapHeader;
 } modbusTcpPacket;
 
-#define openModbusConnection(ipString) connectToModbusTCP(ipString)
-#define closeModbusConnection(intSocketFD) closeModbusTCP(intSocketFD)
+#define openModbusConnection(ipString, port) connectToModbusTCP(ipString, port)
+#define closeModbusConnection(intSocketFD) disconnectFromModbusTCP(intSocketFD)
 
 int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity);
-
 int writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data);
-
-int sendModbusRequest(modbusTcpPacket request, int socketfd);
-int receiveModbusResponse(int socketfd, uint16_t transactionID, sds data);
-// int receiveModbusResponse(modbusTcpPacket* response, int socketfd);
 
 #endif  // _MODBUS_APP_H_

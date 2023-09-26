@@ -9,11 +9,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define MODBUS_TCP_PORT 502
-
-int connectToModbusTCP(char* ip);
 int disconnectFromModbusTCP(int socket);
-int sendModbusRequestTCP(int socket, uint8_t* request, int requestLength);
-int receiveModbusResponseTCP(int socket, uint8_t* response, int responseLength);
+int connectToModbusTCP(char* ip, int port);
+int sendModbusRequestTCP(int socket, char* request, int requestLength);
+int receiveModbusResponseTCP(int socket, char* response, int responseLength);
 
 #endif

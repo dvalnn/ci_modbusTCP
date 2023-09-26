@@ -16,32 +16,43 @@ int sendModbusRequest(modbusTcpPacket request, int socketfd) {
     requestString = sdscatlen(requestString, &request.pdu.fCode, sizeof(request.pdu.fCode));
     requestString = sdscatlen(requestString, &request.pdu.data, sizeof(request.pdu.byteCount));
 
-    // receive response
-    modbusTcpPacket response;
-    int bytesReceived = recv(socketfd, &response, sizeof(response), 0);
-    if (bytesReceived < 0) {
-        fprintf(stderr, "Error: failed to receive response\n");
-        return -1;
-    }
-
-    // check response
-    if (response.pdu.fCode != request.pdu.fCode) {
-        fprintf(stderr, "Error: response function code does not match request function code\n");
-        return -1;
-    }
-
-    if (response.pdu.byteCount != request.pdu.byteCount) {
-        fprintf(stderr, "Error: response byte count does not match request byte count\n");
-        return -1;
-    }
-
-    return 0;
+    // send request
+    return sendModbusRequestTCP(socketfd, requestString, sdslen(requestString));
 }
 
 int receiveModbusResponse(int socketfd, uint16_t transactionID, sds data) {
     // receive response
-    
-    
+    char responseBuffer[MODBUS_ADU_MAX_SIZE];
+
+    if (receiveModbusResponseTCP(socketfd, responseBuffer, MODBUS_ADU_MAX_SIZE) < 0) {
+        fprintf(stderr, "Error: failed to receive response\n");
+        return -1;
+    }
+
+    modbusTcpPacket response;
+
+    // parse mbap header
+    response.mbapHeader.transactionIdentifier = (responseBuffer[0] << 8) | responseBuffer[1];
+    response.mbapHeader.protocolIdentifier = (responseBuffer[2] << 8) | responseBuffer[3];
+    response.mbapHeader.length = (responseBuffer[4] << 8) | responseBuffer[5];
+    response.mbapHeader.unitIdentifier = responseBuffer[6];
+
+    // check transaction ID
+    if (response.mbapHeader.transactionIdentifier != transactionID) {
+        fprintf(stderr, "Error: transaction ID mismatch\n");
+        return -1;
+    }
+
+    // parse pdu
+    response.pdu.fCode = responseBuffer[7];
+    response.pdu.byteCount = responseBuffer[8];
+    for (int i = 0; i < response.pdu.byteCount; i++) {
+        response.pdu.data[i] = responseBuffer[9 + i];
+    }
+
+    // copy data to sds
+    data = sdscatlen(data, &response.pdu.data, response.pdu.byteCount);
+
     return 0;
 }
 
@@ -92,6 +103,14 @@ int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quanti
 
     // receive response as a data string
     sds response = sdsempty();
+    if (receiveModbusResponse(socketfd, message.mbapHeader.transactionIdentifier, response) < 0) {
+        fprintf(stderr, "Error: failed to receive response\n");
+        return -1;
+    }
+
+    // print response and free memory
+    printf("Response: %s\n", response);
+    sdsfree(response);
 
     return 0;
 }

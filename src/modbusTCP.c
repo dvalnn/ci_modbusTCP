@@ -31,14 +31,14 @@ int connectToServer(int socketfd, char* ip, int port) {
 }
 
 // connect to the modbus server through TCP
-int connectToModbusTCP(char* ip) {
+int connectToModbusTCP(char* ip, int port) {
     int socketfd = openTCPSocket();
     if (socketfd < 0) {
         printf("Cannot open socket\n");
         return -1;
     }
 
-    if (connectToServer(socketfd, ip, MODBUS_TCP_PORT) < 0) {
+    if (connectToServer(socketfd, ip, port) < 0) {
         printf("Cannot connect to server\n");
         return -1;
     }
@@ -53,7 +53,7 @@ int disconnectFromModbusTCP(int socketfd) {
 
 // send a modbus request through TCP
 // return 0 if success, -1 if error
-int sendModbusRequestTCP(int socket, uint8_t* request, int requestLength) {
+int sendModbusRequestTCP(int socket, char* request, int requestLength) {
     int sent = 0;
     int n = 0;
     while (sent < requestLength) {
@@ -68,7 +68,7 @@ int sendModbusRequestTCP(int socket, uint8_t* request, int requestLength) {
 
 // receive a modbus response through TCP
 // return 0 if success, -1 if error
-int receiveModbusResponseTCP(int socket, uint8_t* response, int responseLength) {
+int receiveModbusResponseTCP(int socket, char* response, int responseLength) {
     int received = 0;
     int n = 0;
     while (received < responseLength) {
