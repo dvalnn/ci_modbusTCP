@@ -181,13 +181,13 @@ int sendReadHoldingRegs(int socketfd, uint16_t startingAddress, uint16_t quantit
     }
 
     // int id = newTransactionID();
-    uint16_t id = 0x0001;
+    uint16_t id = readHoldingRegsFuncCode;
     modbusPacket* message = newReadHoldingRegs(socketfd, startingAddress, quantity, id);
     if (message == NULL) {
         return -1;
     }
 
-    INFO("\nRead Holding Registers request:\n");
+    INFO("\nRead Holding Registers request\n");
     logPacket(*message);
 
     // print packet as hex
@@ -224,13 +224,13 @@ int sendWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint16_t quant
     }
 
     // int id = newTransactionID();
-    uint16_t id = 0x0001;
+    uint16_t id = writeMultipleRegsFuncCode;
     modbusPacket* message = newWriteMultipleRegs(socketfd, startingAddress, quantity, data, id);
     if (message == NULL) {
         return -1;
     }
 
-    LOG("\nWrite Multiple Registers request\n");
+    INFO("\nWrite Multiple Registers request\n");
     logPacket(*message);
 
     // send request
@@ -245,14 +245,58 @@ int sendWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint16_t quant
     return id;
 }
 
-sds receiveReply(int socketfd, uint16_t transactionID) {
+int receiveReadHoldingRegisters(modbusPacket* packet, char* buffer) {
+    packet->pdu.fCode = buffer[7];
+    if (packet->pdu.fCode == 0x83) {
+        ERROR("error code: %02X -> Read Holding Registers\n", buffer[8]);
+        packet->pdu.byteCount = 1;
+        packet->pdu.data[0] = buffer[8];  // error byte
+        return 0;
+    }
+
+    if (packet->pdu.fCode != readHoldingRegsFuncCode) {
+        ERROR("Read Holding Registers: function code mismatch: %02X\n", packet->pdu.fCode);
+        packet->pdu.byteCount = 0;
+        return 1;
+    }
+
+    packet->pdu.byteCount = buffer[8];
+    for (int i = 0; i < packet->pdu.byteCount; i++) {
+        packet->pdu.data[i] = buffer[9 + i];
+    }
+
+    return 0;
+}
+
+int receiveWriteMultipleRegisters(modbusPacket* packet, char* buffer) {
+    packet->pdu.fCode = buffer[7];
+    if (packet->pdu.fCode == 0x90) {
+        ERROR("error code: %02X -> Write Multiple Registers\n", buffer[8]);
+        packet->pdu.byteCount = 1;
+        packet->pdu.data[0] = buffer[8];  // error byte
+        return 0;
+    }
+
+    if (packet->pdu.fCode != writeMultipleRegsFuncCode) {
+        ERROR("Write Multiple Registers: function code mismatch: %02X\n", packet->pdu.fCode);
+        packet->pdu.byteCount = 0;
+        return 1;
+    }
+
+    packet->pdu.byteCount = 4;
+    for (int i = 0; i < packet->pdu.byteCount; i++) {
+        packet->pdu.data[i] = buffer[8 + i];
+    }
+
+    return 0;
+}
+
+sds receiveReply(int socketfd, uint16_t transactionID, uint8_t fCode) {
     // receive response
     char responseBuffer[MODBUS_ADU_MAX_SIZE];
 
-    if (receiveModbusResponseTCP(socketfd, responseBuffer, MODBUS_ADU_MAX_SIZE) < 0) {
-        ERROR("failed to receive response\n");
+    if (receiveModbusResponseTCP(socketfd, responseBuffer, MODBUS_ADU_MAX_SIZE) < 0)
         return NULL;
-    }
 
     modbusPacket* response = newModbusPacketTCP(MODBUS_DATA_MAX_SIZE);
 
@@ -269,11 +313,23 @@ sds receiveReply(int socketfd, uint16_t transactionID) {
         return NULL;
     }
 
-    // parse pdu
-    response->pdu.fCode = responseBuffer[7];
-    response->pdu.byteCount = responseBuffer[8];
-    for (int i = 0; i < response->pdu.byteCount; i++) {
-        response->pdu.data[i] = responseBuffer[9 + i];
+    int error;
+    switch (fCode) {
+        case readHoldingRegsFuncCode:
+            error = receiveReadHoldingRegisters(response, responseBuffer);
+            break;
+        case writeMultipleRegsFuncCode:
+            error = receiveWriteMultipleRegisters(response, responseBuffer);
+            break;
+        default:
+            ERROR("function code not implemented\n");
+            freeModbusPacketTCP(response);
+            return NULL;
+    }
+
+    if (error) {
+        freeModbusPacketTCP(response);
+        return NULL;
     }
 
     INFO("packet received\n");

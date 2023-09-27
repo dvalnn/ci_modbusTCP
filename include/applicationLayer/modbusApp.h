@@ -51,7 +51,7 @@ typedef struct t_modbusADU {
 
 int sendReadHoldingRegs(int socketfd, uint16_t startingAddress, uint16_t quantity);
 int sendWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data);
-sds receiveReply(int socketfd, uint16_t transactionID);
+sds receiveReply(int socketfd, uint16_t transactionID, uint8_t functionCode);
 
 sds flatenPacketToString(modbusPacket packet);
 
