@@ -4,10 +4,10 @@
 
 #include <inttypes.h>
 
-#include "modbusTCP.h"
-
 #include "sds.h"
 #include "sdsalloc.h"
+
+#include "linkLayer/modbusTCP.h"
 
 #define PHYSICAL_ADDRESS_MIN 1
 #define PHYSICAL_ADDRESS_MAX 65536
