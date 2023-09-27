@@ -18,13 +18,13 @@
  *
  * @param prefix the prefix to use when logging this message
  */
-#define _LOG(prefix, ...) printf("[" prefix "] " __VA_ARGS__)
+#define _LOG(prefix, ...) printf(prefix __VA_ARGS__)
 
 #if _DEBUG >= 1
 /**
  * Prints the formatted message with level INFO
  */
-#define INFO(...) _LOG("INFO", __VA_ARGS__)
+#define INFO(...) _LOG("", __VA_ARGS__)
 #else
 #define INFO(...)
 #endif
@@ -33,7 +33,7 @@
 /**
  * Prints the formatted message with level LOG
  */
-#define LOG(...) _LOG("LOG", __VA_ARGS__)
+#define LOG(...) _LOG("[LOG]", __VA_ARGS__)
 #else
 #define LOG(...)
 #endif
@@ -42,7 +42,7 @@
 /**
  * Prints the formatted message with level ALERT
  */
-#define ALERT(...) _LOG("ALERT", __VA_ARGS__)
+#define ALERT(...) _LOG("[ALERT]", __VA_ARGS__)
 #else
 #define ALERT(...)
 #endif

@@ -37,19 +37,22 @@ typedef struct t_modbusMBAP {
 
 typedef struct t_modbusPDU {
     uint8_t fCode;
-    uint8_t data[MODBUS_DATA_MAX_SIZE];
+    uint8_t* data;
     uint8_t byteCount;
 } modbusPDU;
 
 typedef struct t_modbusADU {
     modbusPDU pdu;
     modbusMBAP mbapHeader;
-} modbusPacketTCP;
+} modbusPacket;
 
-#define openModbusConnection(ipString, port) connectToModbusTCP(ipString, port)
-#define closeModbusConnection(intSocketFD) disconnectFromModbusTCP(intSocketFD)
+#define openConnection(ipString, port) connectToModbusTCP(ipString, port)
+#define closeConnection(intSocketFD) disconnectFromModbusTCP(intSocketFD)
 
-int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity);
-int writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data);
+int sendReadHoldingRegs(int socketfd, uint16_t startingAddress, uint16_t quantity);
+int sendWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data);
+sds receiveReply(int socketfd, uint16_t transactionID);
+
+sds flatenPacketToString(modbusPacket packet);
 
 #endif  // _MODBUS_APP_H_
