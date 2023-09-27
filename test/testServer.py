@@ -25,6 +25,10 @@ class MyDataBank(DataBank):
             3: now.hour,
             4: now.minute,
             5: now.second,
+            6: 0,
+            7: 0,
+            8: 0,
+            9: 0,
         }
         # build a list of virtual regs to return to server data handler
         # return None if any of virtual registers is missing
