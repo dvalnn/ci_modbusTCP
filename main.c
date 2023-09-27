@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#include "include/modbusApp.h"
+#include "modbusApp.h"
 
-#include "include/log.h"
-#include "include/sds.h"
-#include "include/sdsalloc.h"
+#include "log.h"
+#include "sds.h"
+#include "sdsalloc.h"
 
 #define MODBUS_DEFAULT_PORT 502
 

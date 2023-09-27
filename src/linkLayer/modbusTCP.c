@@ -8,9 +8,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../include/modbusTCP.h"
+#include "modbusTCP.h"
 
-#include "../include/log.h"
+#include "log.h"
 
 // create a non-blocking TCP socket
 int openTCPSocket() {

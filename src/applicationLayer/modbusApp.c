@@ -1,6 +1,5 @@
-#include "../include/modbusApp.h"
-
-#include "../include/log.h"
+#include "modbusApp.h"
+#include "log.h"
 
 char* getFunctionCodeString(uint8_t fCode) {
     switch (fCode) {
