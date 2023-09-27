@@ -45,7 +45,7 @@ int connectToServer(int socketfd, char* ip, int port) {
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
 
-    printf("Connecting to %s:%d\n", ip, port);
+    LOG("Connecting to %s:%d\n", ip, port);
 
     // convert IPv4 addresses from text to binary form
     if (inet_aton(ip, &server.sin_addr) == 0) {
@@ -70,7 +70,7 @@ int connectToModbusTCP(char* ip, int port) {
         return -1;
     }
 
-    printf("Connected to %s:%d successfully\n", ip, port);
+    LOG("Connected to %s:%d successfully\n", ip, port);
     return socketfd;
 }
 

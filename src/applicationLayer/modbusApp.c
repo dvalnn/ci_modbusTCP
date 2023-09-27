@@ -13,21 +13,38 @@ char* getFunctionCodeString(uint8_t fCode) {
     }
 }
 
+sds mbapHeaderToString(modbusMBAP mbapHeader) {
+    char mbapHeaderBuffer[MODBUS_MBAP_HEADER_SIZE];
+    mbapHeaderBuffer[0] = mbapHeader.transactionIdentifier >> 8;
+    mbapHeaderBuffer[1] = mbapHeader.transactionIdentifier & 0xFF;
+    mbapHeaderBuffer[2] = mbapHeader.protocolIdentifier >> 8;
+    mbapHeaderBuffer[3] = mbapHeader.protocolIdentifier & 0xFF;
+    mbapHeaderBuffer[4] = mbapHeader.length >> 8;
+    mbapHeaderBuffer[5] = mbapHeader.length & 0xFF;
+    mbapHeaderBuffer[6] = mbapHeader.unitIdentifier;
+
+    return sdsnewlen(mbapHeaderBuffer, MODBUS_MBAP_HEADER_SIZE);
+}
+
+sds flatenPacketToString(modbusPacketTCP packet) {
+    sds flattened = mbapHeaderToString(packet.mbapHeader);
+    flattened = sdscatlen(flattened, &packet.pdu.fCode, sizeof(packet.pdu.fCode));
+    flattened = sdscatlen(flattened, packet.pdu.data, packet.pdu.byteCount);
+
+    return flattened;
+}
+
+void logModbusPacket(modbusPacketTCP packet) {
+    LOG("MBAP Header: %02X %02X %02X %02X %02X %02X %02X %02X\n",
+        packet.mbapHeader.transactionIdentifier >> 8, packet.mbapHeader.transactionIdentifier & 0xFF,
+        packet.mbapHeader.protocolIdentifier >> 8, packet.mbapHeader.protocolIdentifier & 0xFF,
+        packet.mbapHeader.length >> 8, packet.mbapHeader.length & 0xFF,
+        packet.mbapHeader.unitIdentifier >> 8, packet.mbapHeader.unitIdentifier & 0xFF);
+}
+
 int sendModbusRequest(modbusPacketTCP request, int socketfd) {
     // flatten request to a string compatible with send()
-    char mbapHeaderString[MODBUS_MBAP_HEADER_SIZE];
-    mbapHeaderString[0] = request.mbapHeader.transactionIdentifier >> 8;
-    mbapHeaderString[1] = request.mbapHeader.transactionIdentifier & 0xFF;
-    mbapHeaderString[2] = request.mbapHeader.protocolIdentifier >> 8;
-    mbapHeaderString[3] = request.mbapHeader.protocolIdentifier & 0xFF;
-    mbapHeaderString[4] = request.mbapHeader.length >> 8;
-    mbapHeaderString[5] = request.mbapHeader.length & 0xFF;
-    mbapHeaderString[6] = request.mbapHeader.unitIdentifier;
-
-    sds requestString = sdsempty();
-    requestString = sdscatlen(requestString, mbapHeaderString, MODBUS_MBAP_HEADER_SIZE);
-    requestString = sdscatlen(requestString, &request.pdu.fCode, sizeof(request.pdu.fCode));
-    requestString = sdscatlen(requestString, &request.pdu.data, request.pdu.byteCount);
+    sds requestString = flatenPacketToString(request);
 
     // send request and free memory
     int result = sendModbusRequestTCP(socketfd, requestString, sdslen(requestString));
@@ -92,6 +109,7 @@ int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quanti
 
     // build request
     modbusPacketTCP message;
+
     // set mbap header
     message.mbapHeader.transactionIdentifier = 0x0001;
     message.mbapHeader.protocolIdentifier = 0;  // modbus protocol
@@ -100,6 +118,7 @@ int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quanti
 
     // set pdu
     message.pdu.fCode = readHoldingRegsFuncCode;
+
     // set pdu request data in Big Endian format
     message.pdu.data[0] = startingAddress >> 8;
     message.pdu.data[1] = startingAddress & 0xFF;
@@ -110,14 +129,11 @@ int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quanti
     message.pdu.byteCount = 4;
 
     // log request mbap header
-    LOG("Request MBAP Header: %02X %02X %02X %02X %02X %02X %02X %02X\n",
-        message.mbapHeader.transactionIdentifier >> 8, message.mbapHeader.transactionIdentifier & 0xFF,
-        message.mbapHeader.protocolIdentifier >> 8, message.mbapHeader.protocolIdentifier & 0xFF,
-        message.mbapHeader.length >> 8, message.mbapHeader.length & 0xFF,
-        message.mbapHeader.unitIdentifier >> 8, message.mbapHeader.unitIdentifier & 0xFF);
+    logModbusPacket(message);
 
     // print response fcode and enum string representation
     printf("Response fcode: %02X -> %s\n", message.pdu.fCode, getFunctionCodeString(message.pdu.fCode));
+    
     // print request
     printf("Request data: ");
     for (int i = 0; i < message.pdu.byteCount; i++) {
@@ -139,14 +155,11 @@ int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quanti
     }
 
     // log response mbap header
-    LOG("Response MBAP Header: %02X %02X %02X %02X %02X %02X %02X %02X\n",
-        response.mbapHeader.transactionIdentifier >> 8, response.mbapHeader.transactionIdentifier & 0xFF,
-        response.mbapHeader.protocolIdentifier >> 8, response.mbapHeader.protocolIdentifier & 0xFF,
-        response.mbapHeader.length >> 8, response.mbapHeader.length & 0xFF,
-        response.mbapHeader.unitIdentifier >> 8, response.mbapHeader.unitIdentifier & 0xFF);
+    logModbusPacket(response);
 
     // print response fcode and enum string representation
     printf("Response fcode: %02X -> %s\n", response.pdu.fCode, getFunctionCodeString(response.pdu.fCode));
+    
     // print response
     printf("Response data: ");
     for (int i = 0; i < response.pdu.byteCount; i++) {
