@@ -12,7 +12,7 @@ int main(int argc, char const* argv[]) {
     char ip[] = "127.0.0.1";  // localhost
     int socketfd = openModbusConnection(ip, MODBUS_DEFAULT_PORT);
     uint16_t startingAddress = 0x0000;
-    uint16_t quantity = 2;
+    uint16_t quantity = 6;
 
     if (readHoldingRegisters(socketfd, startingAddress, quantity) < 0) {
         ERROR("failed to read holding registers\n");
