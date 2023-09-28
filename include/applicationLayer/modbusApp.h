@@ -31,14 +31,14 @@ typedef enum t_functionCode {
 typedef struct t_modbusMBAP {
     uint16_t transactionIdentifier;
     uint16_t protocolIdentifier;
-    uint16_t length;
+    uint16_t length;  // length of the PDU + 1 (unit identifier)
     uint8_t unitIdentifier;
 } modbusMBAP;
 
 typedef struct t_modbusPDU {
     uint8_t fCode;
     uint8_t* data;
-    uint8_t byteCount;
+    uint8_t dataLen;  // not part of the PDU, but it's useful to have it here
 } modbusPDU;
 
 typedef struct t_modbusADU {
