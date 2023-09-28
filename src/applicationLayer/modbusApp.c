@@ -31,7 +31,7 @@ sds mbapHeaderToString(modbusMBAP mbapHeader) {
 
 sds pduToString(modbusPDU pdu) {
     sds pduString = sdsnewlen(&pdu.fCode, sizeof(pdu.fCode));
-    pduString = sdscatlen(pduString, pdu.data, pdu.byteCount);
+    pduString = sdscatlen(pduString, pdu.data, pdu.dataLen);
 
     return pduString;
 }
@@ -39,7 +39,7 @@ sds pduToString(modbusPDU pdu) {
 sds flatenPacketToString(modbusPacket packet) {
     sds flattened = mbapHeaderToString(packet.mbapHeader);
     flattened = sdscatlen(flattened, &packet.pdu.fCode, sizeof(packet.pdu.fCode));
-    flattened = sdscatlen(flattened, packet.pdu.data, packet.pdu.byteCount);
+    flattened = sdscatlen(flattened, packet.pdu.data, packet.pdu.dataLen);
 
     return flattened;
 }
@@ -50,9 +50,9 @@ void logPacket(modbusPacket packet) {
     INFO("length: %02X\n", packet.mbapHeader.length);
     INFO("unit ID: %02X\n", packet.mbapHeader.unitIdentifier);
     INFO("function code: %02X\n", packet.pdu.fCode);
-    INFO("byte count: %02X\n", packet.pdu.byteCount);
+    INFO("byte count: %02X\n", packet.pdu.dataLen);
     INFO("data: ");
-    for (int i = 0; i < packet.pdu.byteCount; i++) {
+    for (int i = 0; i < packet.pdu.dataLen; i++) {
         INFO("%02X ", packet.pdu.data[i]);
     }
     INFO("\n\n");
@@ -89,7 +89,7 @@ modbusPacket* newModbusPacketTCP(uint16_t dataLength) {
     packet->mbapHeader.unitIdentifier = 0;
 
     packet->pdu.fCode = 0;
-    packet->pdu.byteCount = dataLength;
+    packet->pdu.dataLen = dataLength;
 
     packet->pdu.data = (uint8_t*)malloc(dataLength * sizeof(packet->pdu.data[0]));
 
@@ -102,12 +102,12 @@ modbusPacket* newModbusPacketTCP(uint16_t dataLength) {
 
 // create a new modbusPacket with a read holding registers request
 // return NULL if error
-modbusPacket* newReadHoldingRegs(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t transactionID) {
+modbusPacket* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, uint16_t transactionID) {
     int dataLength = 4;  // 2 bytes for starting address + 2 bytes for quantity
 
     // build request
     modbusPacket* message = newModbusPacketTCP(dataLength);
-    message->pdu.byteCount = dataLength;
+    message->pdu.dataLen = dataLength;
     // set mbap header
     message->mbapHeader.transactionIdentifier = transactionID;
     message->mbapHeader.protocolIdentifier = 0;  // modbus protocol
@@ -123,14 +123,12 @@ modbusPacket* newReadHoldingRegs(int socketfd, uint16_t startingAddress, uint16_
     message->pdu.data[2] = quantity >> 8;
     message->pdu.data[3] = quantity & 0xFF;
 
-    // set byte count
-
     return message;
 }
 
 // create a new modbusPacket with a write multiple registers request
 // return NULL if error
-modbusPacket* newWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data, uint16_t transactionID) {
+modbusPacket* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint16_t* data, uint16_t transactionID) {
     int dataLength = 2 * quantity;  // 2 bytes for each data
 
     // build request
@@ -138,24 +136,33 @@ modbusPacket* newWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint1
     if (message == NULL)
         return NULL;
 
+    // mbap header
+
     // set mbap header
-    message->mbapHeader.transactionIdentifier = 0x0001;
+    message->mbapHeader.transactionIdentifier = transactionID;
     message->mbapHeader.protocolIdentifier = 0;  // modbus protocol
     message->mbapHeader.unitIdentifier = 0x01;   // unit identifier
 
     // set pdu
     message->pdu.fCode = writeMultipleRegsFuncCode;
-    message->pdu.byteCount = dataLength;
+    message->pdu.dataLen = dataLength + 5;  // startingAddress (2B) + quantity (2B) + byteCount (1B) + dataLength
 
     // set pdu request data in Big Endian format
-    for (int i = 0; i < quantity; i++) {
+    message->pdu.data[0] = startingAddress >> 8;
+    message->pdu.data[1] = startingAddress & 0xFF;
+    message->pdu.data[2] = quantity >> 8;
+    message->pdu.data[3] = quantity & 0xFF;
+    message->pdu.data[4] = (uint8_t)quantity * 2;
+
+    // set pdu request data in Big Endian format
+    for (int i = 5; i < quantity + 5; i++) {
         message->pdu.data[2 * i] = data[i] >> 8;        // high byte
         message->pdu.data[2 * i + 1] = data[i] & 0xFF;  // low byte
     }
 
-    // 7 bytes after mbap header + 1 byte for fCode + byteCount bytes for data
-    message->mbapHeader.length = 0x0006 + 1 + message->pdu.byteCount;
-
+    // 1 byte for unitIdentifier + 1 byte for fCode + byteCount bytes for data
+    message->mbapHeader.length = 1 + 1 + message->pdu.dataLen;
+    printf("mbapHeader.length: %d\n", message->mbapHeader.length);
     return message;
 }
 
@@ -180,9 +187,8 @@ int sendReadHoldingRegs(int socketfd, uint16_t startingAddress, uint16_t quantit
         return -1;
     }
 
-    // int id = newTransactionID();
     uint16_t id = readHoldingRegsFuncCode;
-    modbusPacket* message = newReadHoldingRegs(socketfd, startingAddress, quantity, id);
+    modbusPacket* message = newReadHoldingRegs(startingAddress, quantity, id);
     if (message == NULL) {
         return -1;
     }
@@ -223,9 +229,8 @@ int sendWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint16_t quant
         return -1;
     }
 
-    // int id = newTransactionID();
     uint16_t id = writeMultipleRegsFuncCode;
-    modbusPacket* message = newWriteMultipleRegs(socketfd, startingAddress, quantity, data, id);
+    modbusPacket* message = newWriteMultipleRegs(startingAddress, quantity, data, id);
     if (message == NULL) {
         return -1;
     }
@@ -249,19 +254,21 @@ int receiveReadHoldingRegisters(modbusPacket* packet, char* buffer) {
     packet->pdu.fCode = buffer[7];
     if (packet->pdu.fCode == 0x83) {
         ERROR("error code: %02X -> Read Holding Registers\n", buffer[8]);
-        packet->pdu.byteCount = 1;
+        packet->pdu.dataLen = 1;
         packet->pdu.data[0] = buffer[8];  // error byte
         return 0;
     }
 
     if (packet->pdu.fCode != readHoldingRegsFuncCode) {
-        ERROR("Read Holding Registers: function code mismatch: %02X\n", packet->pdu.fCode);
-        packet->pdu.byteCount = 0;
+        ERROR("Read Holding Registers function code mismatch: %02X\n", packet->pdu.fCode);
+        if (packet->pdu.fCode & 0x80)
+            ERROR("error code: %02X\n", buffer[8]);
+        packet->pdu.dataLen = 0;
         return 1;
     }
 
-    packet->pdu.byteCount = buffer[8];
-    for (int i = 0; i < packet->pdu.byteCount; i++) {
+    packet->pdu.dataLen = buffer[8];
+    for (int i = 0; i < packet->pdu.dataLen; i++) {
         packet->pdu.data[i] = buffer[9 + i];
     }
 
@@ -272,19 +279,21 @@ int receiveWriteMultipleRegisters(modbusPacket* packet, char* buffer) {
     packet->pdu.fCode = buffer[7];
     if (packet->pdu.fCode == 0x90) {
         ERROR("error code: %02X -> Write Multiple Registers\n", buffer[8]);
-        packet->pdu.byteCount = 1;
+        packet->pdu.dataLen = 1;
         packet->pdu.data[0] = buffer[8];  // error byte
         return 0;
     }
 
     if (packet->pdu.fCode != writeMultipleRegsFuncCode) {
-        ERROR("Write Multiple Registers: function code mismatch: %02X\n", packet->pdu.fCode);
-        packet->pdu.byteCount = 0;
+        ERROR("Write Multiple Registers function code mismatch: %02X\n", packet->pdu.fCode);
+        if (packet->pdu.fCode & 0x80)
+            ERROR("error code: %02X\n", buffer[8]);
+        packet->pdu.dataLen = 0;
         return 1;
     }
 
-    packet->pdu.byteCount = 4;
-    for (int i = 0; i < packet->pdu.byteCount; i++) {
+    packet->pdu.dataLen = 4;
+    for (int i = 0; i < packet->pdu.dataLen; i++) {
         packet->pdu.data[i] = buffer[8 + i];
     }
 
@@ -308,9 +317,7 @@ sds receiveReply(int socketfd, uint16_t transactionID, uint8_t fCode) {
 
     // check transaction ID
     if (response->mbapHeader.transactionIdentifier != transactionID) {
-        ERROR("transaction ID mismatch\n");
-        freeModbusPacketTCP(response);
-        return NULL;
+        ERROR("transaction ID mismatch\n\texpected: %02X\n\treceived: %02X\n", transactionID, response->mbapHeader.transactionIdentifier);
     }
 
     int error;
@@ -332,12 +339,9 @@ sds receiveReply(int socketfd, uint16_t transactionID, uint8_t fCode) {
         return NULL;
     }
 
-    INFO("packet received\n");
-    logPacket(*response);
-
     // parse pdu data to string in hex
-    sds dataString = sdsnewlen(NULL, response->pdu.byteCount / 2);
-    for (int i = 0; i < response->pdu.byteCount / 2; i++) {
+    sds dataString = sdsnewlen(NULL, response->pdu.dataLen / 2);
+    for (int i = 0; i < response->pdu.dataLen / 2; i++) {
         dataString[i] = ((response->pdu.data[2 * i] << 8) | response->pdu.data[2 * i + 1]);
     }
 
