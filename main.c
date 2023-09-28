@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "applicationLayer/modbusApp.h"
 
@@ -31,68 +32,50 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    uint16_t startingAddress = 0x0000;
-    uint16_t quantity = 6;
-    printf("sending Read Holding Registers request\n");
-    printf("starting address: %d, quantity: %d\n", startingAddress, quantity);
+    sds reply;
+    int id = 1;
+    uint16_t readQuantity = 10;
+    uint16_t readAddress = 0;
+    uint16_t writeAddress = 7;
+    uint16_t writeValue = 0x01;
+    uint16_t writeQuantity = 1;
 
-    int id = sendReadHoldingRegs(socketfd, startingAddress, quantity);
-    if (id < 0) {
-        ERROR("failed to send Read Holding Registers request\n");
-        return -1;
+    for (;;) {
+        printf("\nRead Holding Registers request\n");
+        printf("starting address: %d, quantity: %d\n", readAddress, readQuantity);
+        id = sendReadHoldingRegs(socketfd, readAddress, readQuantity);
+        if (id < 0) {
+            ERROR("cannot send R.H.R request\n");
+            break;
+        }
+        reply = receiveReply(socketfd, id, readHoldingRegsFuncCode);
+        if (reply == NULL) {
+            ERROR("cannot receive reply\n");
+            continue;
+        } else {
+            printStringAsHex(reply, sdslen(reply));
+            sdsfree(reply);
+        }
+        sleep(1);
+
+        printf("\nWrite Single Register request\n");
+        printf("address: %d, value: %d\n", writeAddress, writeValue);
+        id = sendWriteMultipleRegs(socketfd, writeAddress, writeQuantity, &writeValue);
+        if (id < 0) {
+            ERROR("cannot snd W.M.R. request\n");
+            break;
+        }
+        reply = receiveReply(socketfd, id, writeMultipleRegsFuncCode);
+        if (reply == NULL) {
+            ERROR("cannot receive wmr reply\n");
+            continue;
+        } else {
+            printStringAsHex(reply, sdslen(reply));
+            sdsfree(reply);
+        }
+        sleep(1);
     }
 
-    sds reply = receiveReply(socketfd, id, readHoldingRegsFuncCode);
-    if (reply == NULL) {
-        ERROR("failed to receive reply\n");
-        return -1;
-    }
-
-    // print reply as hex
-    printStringAsHex(reply, sdslen(reply));
-
-    quantity = 4;
-    startingAddress = 6;
-    uint16_t data[4] = {0x0001, 0x0002, 0x0003, 0x0004};
-    printf("sending Write Multiple Registers request\n");
-    printf("starting address: %d, quantity: %d\n", startingAddress, quantity);
-    printf("data: ");
-    for (int i = 0; i < quantity; i++) {
-        printf("%04X ", data[i]);
-    }
-    printf("\n");
-
-    id = sendWriteMultipleRegs(socketfd, startingAddress, quantity, data);
-    if (id < 0) {
-        ERROR("failed to send Read Holding Registers request\n");
-        return -1;
-    }
-
-    reply = receiveReply(socketfd, id, writeMultipleRegsFuncCode);
-    if (reply == NULL) {
-        ERROR("failed to receive reply\n");
-        // return -1;
-    } else
-        printStringAsHex(reply, sdslen(reply));
-
-    quantity = 9;
-    startingAddress = 0;
-    printf("sending Read Holding Registers request\n");
-    printf("starting address: %d, quantity: %d\n", startingAddress, quantity);
-    id = sendReadHoldingRegs(socketfd, startingAddress, quantity);
-    if (id < 0) {
-        ERROR("failed to send Read Holding Registers request\n");
-        return -1;
-    }
-
-    reply = receiveReply(socketfd, id, readHoldingRegsFuncCode);
-    if (reply == NULL) {
-        ERROR("failed to receive reply\n");
-        return -1;
-    }
-    printStringAsHex(reply, sdslen(reply));
-
-    sdsfree(reply);
     closeConnection(socketfd);
     return 0;
 }
