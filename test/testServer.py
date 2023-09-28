@@ -5,6 +5,8 @@ import logging
 from datetime import datetime
 from pyModbusTCP.server import ModbusServer, DataBank
 
+v_regs_d = [0 for _ in range(10)]
+
 
 class MyDataBank(DataBank):
     """A custom ModbusServerDataBank for override get_holding_registers method."""
@@ -12,24 +14,19 @@ class MyDataBank(DataBank):
     def __init__(self):
         # turn off allocation of memory for standard modbus object types
         # only "holding registers" space will be replaced by dynamic build values.
-        super().__init__(virtual_mode=True)
+        super().__init__(virtual_mode=True, h_regs_size=10, h_regs_default_value=0)
 
     def get_holding_registers(self, address, number=1, srv_info=None):
         """Get virtual holding registers."""
-        # populate virtual registers dict with current datetime values
         now = datetime.now()
-        v_regs_d = {
-            0: now.day,
-            1: now.month,
-            2: now.year,
-            3: now.hour,
-            4: now.minute,
-            5: now.second,
-            6: 0,
-            7: 0,
-            8: 0,
-            9: 0,
-        }
+        # update datetime values every seconds
+        v_regs_d[0] = now.day
+        v_regs_d[1] = now.month
+        v_regs_d[2] = now.year
+        v_regs_d[3] = now.hour
+        v_regs_d[4] = now.minute
+        v_regs_d[5] = now.second
+
         # build a list of virtual regs to return to server data handler
         # return None if any of virtual registers is missing
         try:
@@ -37,13 +34,15 @@ class MyDataBank(DataBank):
         except KeyError:
             return
 
-    def on_holding_registers_change(self, address, from_value, to_value, srv_info=None):
-        """Call by server when change occur on holding registers space."""
-        msg = (
-            "change in hreg space [{0!r:^5} > {1!r:^5}] at @ 0x{2:04X} from ip: {3:<15}"
-        )
-        msg = msg.format(from_value, to_value, address, srv_info.client.address)
-        logging.info(msg)
+    # set data to holding registers
+    def set_holding_registers(self, address, word_list, srv_info=None):
+        """Set virtual holding registers."""
+        try:
+            for a in range(address, address + len(word_list)):
+                v_regs_d[a] = word_list[a - address]
+            return True
+        except KeyError:
+            return
 
 
 if __name__ == "__main__":
