@@ -36,8 +36,9 @@ int main(int argc, char* argv[]) {
     int id = 1;
     uint16_t readQuantity = 10;
     uint16_t readAddress = 0;
+    
     uint16_t writeAddress = 7;
-    uint16_t writeValue = 0x01;
+    uint16_t writeValue = 0;
     uint16_t writeQuantity = 1;
 
     for (;;) {
