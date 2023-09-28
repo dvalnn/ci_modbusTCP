@@ -37,6 +37,14 @@ class MyDataBank(DataBank):
         except KeyError:
             return
 
+    def on_holding_registers_change(self, address, from_value, to_value, srv_info=None):
+        """Call by server when change occur on holding registers space."""
+        msg = (
+            "change in hreg space [{0!r:^5} > {1!r:^5}] at @ 0x{2:04X} from ip: {3:<15}"
+        )
+        msg = msg.format(from_value, to_value, address, srv_info.client.address)
+        logging.info(msg)
+
 
 if __name__ == "__main__":
     # parse args
@@ -49,18 +57,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # init modbus server and start it
-    server = ModbusServer(
-        host=args.host, port=args.port, data_bank=MyDataBank(), no_block=True
-    )
+    # set logging level
+    logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 
-    try:
-        print("ModbusTCP server starting...")
-        server.start()
-        print("Server online")
-        while True:
-            continue
-    except:
-        print("\nServer shutting down...")
-        server.stop()
-        print("ModbusTCP server offline")
+    # init modbus server and start it
+    server = ModbusServer(host=args.host, port=args.port, data_bank=MyDataBank())
+    logging.info("Start server...")
+    server.start()
