@@ -6,7 +6,7 @@
 
 int disconnectFromModbusTCP(int socket);
 int connectToModbusTCP(char* ip, int port);
-int sendModbusRequestTCP(int socket, char* request, int requestLength);
-int receiveModbusResponseTCP(int socket, char* response, int responseLength);
+int sendModbusRequestTCP(int socket, uint8_t* request, int requestLength);
+int receiveModbusResponseTCP(int socket, uint8_t* response, int responseLength);
 
 #endif

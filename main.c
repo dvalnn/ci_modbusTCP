@@ -51,12 +51,11 @@ int main(int argc, char* argv[]) {
         reply = receiveReply(socketfd, id, readHoldingRegsFuncCode);
         if (reply == NULL) {
             ERROR("cannot receive reply\n");
-            continue;
+            break;
         } else {
             printStringAsHex(reply, sdslen(reply));
             sdsfree(reply);
         }
-        sleep(1);
 
         printf("\nWrite Single Register request\n");
         printf("address: %d, value: %d\n", writeAddress, writeValue);
@@ -68,11 +67,13 @@ int main(int argc, char* argv[]) {
         reply = receiveReply(socketfd, id, writeMultipleRegsFuncCode);
         if (reply == NULL) {
             ERROR("cannot receive wmr reply\n");
-            continue;
+            break;
         } else {
             printStringAsHex(reply, sdslen(reply));
             sdsfree(reply);
         }
+
+        writeValue = (writeValue + 1) % 0xFFFF;
         sleep(1);
     }
 

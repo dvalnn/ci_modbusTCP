@@ -81,7 +81,7 @@ int disconnectFromModbusTCP(int socketfd) {
 
 // send a modbus request through TCP
 // return 0 if success, -1 if error
-int sendModbusRequestTCP(int socket, char* request, int requestLength) {
+int sendModbusRequestTCP(int socket, uint8_t* request, int requestLength) {
     int sent = 0;
     int n = 0;
     while (sent < requestLength) {
@@ -97,7 +97,7 @@ int sendModbusRequestTCP(int socket, char* request, int requestLength) {
 // receive a modbus response through TCP
 // return 0 if success, -1 if error
 // timeout the receive call after 1 second
-int receiveModbusResponseTCP(int socket, char* response, int responseLength) {
+int receiveModbusResponseTCP(int socket, uint8_t* response, int responseLength) {
     int received = 0;
 
     // int n = 0;

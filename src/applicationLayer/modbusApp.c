@@ -63,7 +63,7 @@ int sendModbusRequest(modbusPacket request, int socketfd) {
     sds requestString = flatenPacketToString(request);
 
     // send request and free memory
-    int result = sendModbusRequestTCP(socketfd, requestString, sdslen(requestString));
+    int result = sendModbusRequestTCP(socketfd, (uint8_t*)requestString, sdslen(requestString));
     sdsfree(requestString);
 
     return result;
@@ -250,7 +250,7 @@ int sendWriteMultipleRegs(int socketfd, uint16_t startingAddress, uint16_t quant
     return id;
 }
 
-int receiveReadHoldingRegisters(modbusPacket* packet, char* buffer) {
+int receiveReadHoldingRegisters(modbusPacket* packet, uint8_t* buffer) {
     packet->pdu.fCode = buffer[7];
     if (packet->pdu.fCode == 0x83) {
         ERROR("error code: %02X -> Read Holding Registers\n", buffer[8]);
@@ -275,9 +275,9 @@ int receiveReadHoldingRegisters(modbusPacket* packet, char* buffer) {
     return 0;
 }
 
-int receiveWriteMultipleRegisters(modbusPacket* packet, char* buffer) {
+int receiveWriteMultipleRegisters(modbusPacket* packet, uint8_t* buffer) {
     packet->pdu.fCode = buffer[7];
-    if (packet->pdu.fCode == 0x90) {
+    if (packet->pdu.fCode == writeMultipleRegsFuncCode + 0x80) {
         ERROR("error code: %02X -> Write Multiple Registers\n", buffer[8]);
         packet->pdu.dataLen = 1;
         packet->pdu.data[0] = buffer[8];  // error byte
@@ -302,7 +302,7 @@ int receiveWriteMultipleRegisters(modbusPacket* packet, char* buffer) {
 
 sds receiveReply(int socketfd, uint16_t transactionID, uint8_t fCode) {
     // receive response
-    char responseBuffer[MODBUS_ADU_MAX_SIZE];
+    uint8_t responseBuffer[MODBUS_ADU_MAX_SIZE];
 
     if (receiveModbusResponseTCP(socketfd, responseBuffer, MODBUS_ADU_MAX_SIZE) < 0)
         return NULL;
