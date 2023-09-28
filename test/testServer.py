@@ -39,6 +39,10 @@ class MyDataBank(DataBank):
         """Set virtual holding registers."""
         try:
             for a in range(address, address + len(word_list)):
+                logging.info(
+                    "reg[%d] change from %d to %d"
+                    % (a, v_regs_d[a], word_list[a - address])
+                )
                 v_regs_d[a] = word_list[a - address]
             return True
         except KeyError:
