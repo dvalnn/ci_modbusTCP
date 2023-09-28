@@ -4,7 +4,7 @@
 # Parameters
 CC = gcc
 
-DEBUG_LEVEL = 2
+DEBUG_LEVEL = 0
 
 # _DEBUG is used to include internal logging of errors and general information. Levels go from 1 to 3, highest to lowest priority respectively
 CFLAGS = -Wall -g -D _DEBUG=$(DEBUG_LEVEL) #-Wno-unknown-pragmas -Wno-implicit-function-declaration -Wno-unused-variable
