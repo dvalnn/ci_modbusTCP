@@ -148,21 +148,20 @@ modbusPacket* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, 
     message->pdu.dataLen = dataLength + 5;  // startingAddress (2B) + quantity (2B) + byteCount (1B) + dataLength
 
     // set pdu request data in Big Endian format
-    message->pdu.data[0] = startingAddress >> 8;
-    message->pdu.data[1] = startingAddress & 0xFF;
-    message->pdu.data[2] = quantity >> 8;
-    message->pdu.data[3] = quantity & 0xFF;
+    message->pdu.data[0] = (uint8_t)startingAddress >> 8;
+    message->pdu.data[1] = (uint8_t)startingAddress & 0xFF;
+    message->pdu.data[2] = (uint8_t)quantity >> 8;
+    message->pdu.data[3] = (uint8_t)quantity & 0xFF;
     message->pdu.data[4] = (uint8_t)quantity * 2;
 
     // set pdu request data in Big Endian format
-    for (int i = 5; i < quantity + 5; i++) {
-        message->pdu.data[2 * i] = data[i] >> 8;        // high byte
-        message->pdu.data[2 * i + 1] = data[i] & 0xFF;  // low byte
+    for (int i = 0; i < quantity; i++) {
+        message->pdu.data[2 * i + 5] = (uint8_t)data[i] >> 8;        // high byte
+        message->pdu.data[2 * i + 6] = (uint8_t)data[i] & 0xFF;  // low byte
     }
 
     // 1 byte for unitIdentifier + 1 byte for fCode + byteCount bytes for data
     message->mbapHeader.length = 1 + 1 + message->pdu.dataLen;
-    printf("mbapHeader.length: %d\n", message->mbapHeader.length);
     return message;
 }
 
