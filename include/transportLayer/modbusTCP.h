@@ -1,6 +1,7 @@
 #ifndef _MODBUS_TCP_H_
 #define _MODBUS_TCP_H_
 
+#include <inttypes.h>
 #include <sys/time.h>
 
 #define MODBUS_TIMEOUT_SEC 3
