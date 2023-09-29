@@ -1,7 +1,7 @@
+#include "applicationLayer/modbusApp.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "applicationLayer/modbusApp.h"
 
 #include "log.h"
 
@@ -14,19 +14,6 @@ char* getFunctionCodeString(uint8_t fCode) {
         default:
             return "not implemented";
     }
-}
-
-sds mbapHeaderToString(modbusMBAP mbapHeader) {
-    char mbapHeaderBuffer[MODBUS_MBAP_HEADER_SIZE];
-    mbapHeaderBuffer[0] = mbapHeader.transactionIdentifier >> 8;
-    mbapHeaderBuffer[1] = mbapHeader.transactionIdentifier & 0xFF;
-    mbapHeaderBuffer[2] = mbapHeader.protocolIdentifier >> 8;
-    mbapHeaderBuffer[3] = mbapHeader.protocolIdentifier & 0xFF;
-    mbapHeaderBuffer[4] = mbapHeader.length >> 8;
-    mbapHeaderBuffer[5] = mbapHeader.length & 0xFF;
-    mbapHeaderBuffer[6] = mbapHeader.unitIdentifier;
-
-    return sdsnewlen(mbapHeaderBuffer, MODBUS_MBAP_HEADER_SIZE);
 }
 
 sds pduToString(modbusPDU pdu) {
@@ -63,7 +50,7 @@ int sendModbusRequest(modbusPacket request, int socketfd) {
     sds requestString = flatenPacketToString(request);
 
     // send request and free memory
-    int result = sendModbusRequestTCP(socketfd, (uint8_t*)requestString, sdslen(requestString));
+    int result = tcpSendPacket(socketfd, (uint8_t*)requestString, sdslen(requestString));
     sdsfree(requestString);
 
     return result;
@@ -156,7 +143,7 @@ modbusPacket* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, 
 
     // set pdu request data in Big Endian format
     for (int i = 0; i < quantity; i++) {
-        message->pdu.data[2 * i + 5] = (uint8_t)data[i] >> 8;        // high byte
+        message->pdu.data[2 * i + 5] = (uint8_t)data[i] >> 8;    // high byte
         message->pdu.data[2 * i + 6] = (uint8_t)data[i] & 0xFF;  // low byte
     }
 
@@ -303,7 +290,7 @@ sds receiveReply(int socketfd, uint16_t transactionID, uint8_t fCode) {
     // receive response
     uint8_t responseBuffer[MODBUS_ADU_MAX_SIZE];
 
-    if (receiveModbusResponseTCP(socketfd, responseBuffer, MODBUS_ADU_MAX_SIZE) < 0)
+    if (tcpReceive(socketfd, responseBuffer, MODBUS_ADU_MAX_SIZE) < 0)
         return NULL;
 
     modbusPacket* response = newModbusPacketTCP(MODBUS_DATA_MAX_SIZE);
