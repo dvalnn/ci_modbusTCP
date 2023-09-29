@@ -14,7 +14,7 @@
 #include "log.h"
 #include "sds.h"
 #include "sdsalloc.h"
-#include "transportLayer/modbusDataPackaging.h"
+#include "transportLayer/dataPackaging.h"
 #include "transportLayer/tcpControl.h"
 
 #define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
@@ -29,7 +29,7 @@
  * @return int sent bytes if success (< 0 if error)
  */
 int modbusSend(int socketfd, uint8_t id, uint8_t* pdu, int pLen) {
-    modbusADU* adu = createModbusADU(id, pdu, pLen);
+    modbusADU* adu = newModbusADU(id, pdu, pLen);
     if (adu == NULL) {
         return -1;
     }
