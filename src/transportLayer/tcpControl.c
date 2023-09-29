@@ -106,7 +106,7 @@ int tcpReceive(int socketfd, uint8_t* packet, int pLen) {
 
     int n = 0;
     while (received < pLen) {
-        n = recv(socket, packet + received, pLen - received, 0);
+        n = recv(socketfd, packet + received, pLen - received, 0);
         if (n < 0) {
             return -1;
         }

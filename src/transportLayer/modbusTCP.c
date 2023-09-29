@@ -42,7 +42,7 @@ int modbusSend(int socketfd, uint8_t id, uint8_t* pdu, int pLen) {
  * @brief receive a modbus Response
  *
  * @param socketfd socket file descriptor
- * @param pdu protocol data unit
+ * @param pdu pointer to the pdu buffer (must be freed by the caller)
  * @return int pdu length if success, -1 if error, -2 id mismatch
  */
 int modbusReceive(int socketfd, uint8_t id, uint8_t* pdu) {

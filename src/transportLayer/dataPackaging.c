@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "log.h"
+#include "transportLayer/tcpControl.h"
 
 #define MODBUS_MBAP_HEADER_SIZE 7
 #define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
@@ -108,7 +109,7 @@ int sendModbusADU(int socketfd, modbusADU* adu) {
 
     // concatenate the MBAP header and the PDU
     // the MBAP header is not included in the length field
-    uint8_t* packet = (uint8_t*)malloc(MODBUS_MBAP_HEADER_SIZE + pduLen);
+    uint8_t* packet = (uint8_t*)malloc((MODBUS_MBAP_HEADER_SIZE + pduLen) * sizeof(*packet));
     if (packet == NULL) {
         MALLOC_ERR;
         return -1;
@@ -133,13 +134,12 @@ int sendModbusADU(int socketfd, modbusADU* adu) {
  * @brief receive a modbus ADU through TCP
  *
  * @param socketfd socket file descriptor
- * @param adu pointer to the modbus ADU to receive
- * @return 0 if success, -1 if error
+ * @return modbusADU* pointer to the received modbus ADU, NULL if error
  */
 modbusADU* receiveModbusADU(int socketfd) {
     if (socketfd < 0) {
         ERROR("receiveModbusADU: invalid parameters\n");
-        return -1;
+        return NULL;
     }
 
     modbusADU* adu = _createModbusADU(0, 0, 0, NULL, 0);
@@ -149,7 +149,7 @@ modbusADU* receiveModbusADU(int socketfd) {
     int received = tcpReceive(socketfd, mbapHeader, MODBUS_MBAP_HEADER_SIZE);
     if (received < 0) {
         ERROR("Cannot receive modbus ADU\n");
-        return -1;
+        return NULL;
     }
 
     // parse the MBAP header
@@ -165,17 +165,17 @@ modbusADU* receiveModbusADU(int socketfd) {
     adu->pdu = (uint8_t*)malloc(pduLen);
     if (adu->pdu == NULL) {
         MALLOC_ERR;
-        return -1;
+        return NULL;
     }
 
     // receive the PDU (function code + data)
     received = tcpReceive(socketfd, adu->pdu, pduLen);
     if (received < 0) {
         ERROR("Cannot receive modbus data\n");
-        return -1;
+        return NULL;
     }
 
-    return received;
+    return adu;
 }
 
 #undef MALOC_ERR

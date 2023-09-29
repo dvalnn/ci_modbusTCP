@@ -1,6 +1,9 @@
 #ifndef _TCP_CONTROL_H_
 #define _TCP_CONTROL_H_
 
+#include <inttypes.h>
+#include <sys/time.h>
+
 int tcpCloseSocket(int socketfd);
 int tcpOpenSocket(time_t seconds, suseconds_t microseconds);
 
