@@ -104,9 +104,8 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t q
     }
 
     packet = modbusReceive(socketfd, id, &len);
-    printf("len: %d\n", len);
 
-    if (len < 0) {
+    if (packet == NULL) {
         ERROR("failed to receive Read Holding Registers response\n");
         return NULL;
     }
@@ -124,7 +123,7 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t q
  * @return modbusPDU* pointer to the modbusPDU instance
  */
 uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint16_t* data, int* len) {
-    *len = quantity * 2;  // 2 bytes for starting address + 2 bytes for quantity
+    *len = quantity * 2 + 6;  // 2 bytes for starting address + 2 bytes for quantity
     uint8_t* pdu = (uint8_t*)malloc(*len);
     if (pdu == NULL) {
         MALLOC_ERR;
@@ -136,12 +135,12 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
     pdu[2] = (uint8_t)startingAddress & 0xFF;
     pdu[3] = (uint8_t)quantity >> 8;
     pdu[4] = (uint8_t)quantity & 0xFF;
-    pdu[5] = (uint8_t)quantity * 2;
+    pdu[5] = (uint8_t)quantity * 2;  // number of bytes to follow
 
     // set pdu request data in Big Endian format
     for (int i = 0; i < quantity; i++) {
-        pdu[2 * i + 5] = (uint8_t)data[i] >> 8;    // high byte
-        pdu[2 * i + 6] = (uint8_t)data[i] & 0xFF;  // low byte
+        pdu[2 * i + 6] = (uint8_t)data[i] >> 8;    // high byte
+        pdu[2 * i + 7] = (uint8_t)data[i] & 0xFF;  // low byte
     }
 
     return pdu;
@@ -187,8 +186,8 @@ uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t
 
     packet = modbusReceive(socketfd, id, &len);
 
-    if (len < 0) {
-        ERROR("failed to receive Read Holding Registers response\n");
+    if (packet == NULL) {
+        ERROR("failed to receive Write Multiple Registers response\n");
         return NULL;
     }
 

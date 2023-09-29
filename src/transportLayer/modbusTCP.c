@@ -53,6 +53,8 @@ uint8_t* modbusReceive(int socketfd, uint16_t id, int* pduLen) {
 
     if (adu->transactionID != id) {
         freeModbusADU(adu);
+        ERROR("transaction id mismatch\n\treceived: %d\n\texpected: %d\n",
+              adu->transactionID, id);
         return NULL;
     }
 
@@ -65,7 +67,6 @@ uint8_t* modbusReceive(int socketfd, uint16_t id, int* pduLen) {
     }
 
     memcpy(pdu, adu->pdu, *pduLen);
-
     freeModbusADU(adu);
 
     return pdu;

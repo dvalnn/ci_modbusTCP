@@ -46,10 +46,13 @@ int main(int argc, char* argv[]) {
             ERROR("Read Holding Registers failed\n");
             break;
         }
+        if (buffer[0] & 0x80) {
+            printf("Error code: %d\n", buffer[1]);
+            break;
+        }
         printArrayAsHex(buffer, bufferLength);
 
         free(buffer);
-        buffer = NULL;
 
         printf("\nWrite Single Register request\n");
         printf("address: %d, value: %d\n", writeAddress, writeValue);
@@ -58,6 +61,11 @@ int main(int argc, char* argv[]) {
             ERROR("Write Single Register failed\n");
             break;
         }
+        if (buffer[0] & 0x80) {
+            printf("Error code: %d\n", buffer[1]);
+            break;
+        }
+        printArrayAsHex(buffer, bufferLength);
 
         writeValue = (writeValue + 1) % 0xFFFF;
         sleep(1);

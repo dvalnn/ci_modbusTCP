@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "log.h"
+
 /**
  * @brief create a TCP socket and set timeout and keepalive options
  *
@@ -104,8 +106,9 @@ int tcpSend(int socketfd, uint8_t* packet, int pLen) {
 int tcpReceive(int socketfd, uint8_t* packet, int pLen) {
     int received = 0;
 
-    received = recv(socketfd, packet + received, pLen - received, 0);
+    received = recv(socketfd, packet, pLen, 0);
     if (received < 0) {
+        ERROR("invalid packet\n");
         return -1;
     }
 
