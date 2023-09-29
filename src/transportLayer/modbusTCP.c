@@ -28,7 +28,7 @@
  * @param pLen protocol data unit length
  * @return int sent bytes if success (< 0 if error)
  */
-int modbusSend(int socketfd, uint8_t id, uint8_t* pdu, int pLen) {
+int modbusSend(int socketfd, uint16_t id, uint8_t* pdu, int pLen) {
     modbusADU* adu = newModbusADU(id, pdu, pLen);
     if (adu == NULL) {
         return -1;
@@ -45,7 +45,7 @@ int modbusSend(int socketfd, uint8_t id, uint8_t* pdu, int pLen) {
  * @param pdu pointer to the pdu buffer (must be freed by the caller)
  * @return int pdu length if success, -1 if error, -2 id mismatch
  */
-int modbusReceive(int socketfd, uint8_t id, uint8_t* pdu) {
+int modbusReceive(int socketfd, uint16_t id, uint8_t* pdu) {
     modbusADU* adu = receiveModbusADU(socketfd);
     if (adu == NULL) {
         return -1;

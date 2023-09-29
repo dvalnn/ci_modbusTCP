@@ -53,15 +53,16 @@ modbusADU* _createModbusADU(uint16_t transactionID,
 /**
  * @brief Create a Modbus ADU (Application Data Unit) instance
  *
- * @param transactionID
+ * @param transactionID transaction identifier
  * @param pdu protocol data unit (function code + data, must be at least 1 byte)
  * @param pduLen protocol data unit length (must be at least 1)
  * @return modbusADU* pointer to the created modbus ADU
  *         NUll if error
  */
 modbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
-    if (transactionID < 0 || pduLen < 1 || pdu == NULL) {
-        ERROR("newModbusADU: invalid parameters\n");
+    if (transactionID < 0 || pdu == NULL || pduLen <= 0) {
+        ERROR("newModbusADU: invalid parameters\n\ttransactionID: %d, pdu: %p, pduLen: %d\n",
+              transactionID, pdu, pduLen);
         return NULL;
     }
 

@@ -12,7 +12,7 @@
 int modbusConnect(char* ip, int port, time_t seconds, suseconds_t microseconds);
 int modbusDisconnect(int socketfd);
 
-int modbusSend(int socketfd, uint8_t id, uint8_t* pdu, int pLen);
-int modbusReceive(int socketfd, uint8_t id, uint8_t* pdu);
+int modbusSend(int socketfd, uint16_t id, uint8_t* pdu, int pLen);
+int modbusReceive(int socketfd, uint16_t id, uint8_t* pdu);
 
 #endif  // _MODBUS_TCP_H_
