@@ -6,10 +6,10 @@
 #include "applicationLayer/modbusApp.h"
 #include "log.h"
 
-void printArrayAsHex(uint16_t* s, int len) {
+void printArrayAsHex(void* s, int len) {
     printf("Reply: ");
     for (int i = 0; i < len; i++) {
-        printf("%02X ", (uint16_t)s[i]);
+        printf("%02X ", ((uint8_t*)s)[i]);
     }
     printf("\n");
 }
@@ -36,13 +36,13 @@ int main(int argc, char* argv[]) {
     uint16_t writeValue = 0;
     uint16_t writeQuantity = 1;
 
-    uint16_t* buffer = NULL;
+    uint8_t* buffer = NULL;
     int bufferLength = 0;
     for (;;) {
         printf("\nRead Holding Registers request\n");
         printf("starting address: %d, quantity: %d\n", readAddress, readQuantity);
-        bufferLength = readHoldingRegisters(socketfd, readAddress, readQuantity, buffer);
-        if (bufferLength < 0) {
+        buffer = readHoldingRegisters(socketfd, readAddress, readQuantity, &bufferLength);
+        if (buffer == NULL) {
             ERROR("Read Holding Registers failed\n");
             break;
         }
@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
 
         printf("\nWrite Single Register request\n");
         printf("address: %d, value: %d\n", writeAddress, writeValue);
-        bufferLength = writeMultipleRegisters(socketfd, writeAddress, writeQuantity, &writeValue, buffer);
-        if (bufferLength < 0) {
+        buffer = writeMultipleRegisters(socketfd, writeAddress, writeQuantity, &writeValue, &bufferLength);
+        if (buffer == NULL) {
             ERROR("Write Single Register failed\n");
             break;
         }

@@ -23,7 +23,7 @@ typedef enum t_functionCode {
 int connectToServer(char* ip, int port);
 void disconnectFromServer(int socketfd);
 
-int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* response);
-int writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data, uint16_t* response);
+uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data, int* rlen);
+uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, int* rlen);
 
 #endif  // _MODBUS_APP_H_

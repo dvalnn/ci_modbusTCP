@@ -19,11 +19,11 @@
  * @param pduLen protocol data unit length
  * @return modbusADU* pointer to the created modbus ADU
  */
-modbusADU* _createModbusADU(uint16_t transactionID,
-                            uint16_t protocolIdentifier,
-                            uint8_t unitIdentifier,
-                            uint8_t* pdu,
-                            int pduLen) {
+modbusADU* _newModbusADU(uint16_t transactionID,
+                         uint16_t protocolIdentifier,
+                         uint8_t unitIdentifier,
+                         uint8_t* pdu,
+                         int pduLen) {
     modbusADU* adu = (modbusADU*)malloc(sizeof(modbusADU));
     if (adu == NULL) {
         MALLOC_ERR;
@@ -66,7 +66,7 @@ modbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
         return NULL;
     }
 
-    return _createModbusADU(transactionID, 0, 0, pdu, pduLen);
+    return _newModbusADU(transactionID, 0, 0, pdu, pduLen);
 }
 
 /**
@@ -120,7 +120,7 @@ int sendModbusADU(int socketfd, modbusADU* adu) {
     memcpy(packet + MODBUS_MBAP_HEADER_SIZE, adu->pdu, pduLen);
 
     // send the packet
-    int sent = tcpSend(socketfd, packet, MODBUS_MBAP_HEADER_SIZE + adu->length);
+    int sent = tcpSend(socketfd, packet, MODBUS_MBAP_HEADER_SIZE + pduLen);
     if (sent < 0) {
         ERROR("Cannot send modbus ADU\n");
         return -1;
@@ -143,7 +143,7 @@ modbusADU* receiveModbusADU(int socketfd) {
         return NULL;
     }
 
-    modbusADU* adu = _createModbusADU(0, 0, 0, NULL, 0);
+    modbusADU* adu = _newModbusADU(0, 0, 0, NULL, 0);
 
     // receive the MBAP header
     uint8_t mbapHeader[MODBUS_MBAP_HEADER_SIZE];

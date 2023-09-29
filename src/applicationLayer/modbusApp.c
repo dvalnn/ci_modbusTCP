@@ -65,31 +65,31 @@ uint8_t* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, int* le
  * @param response pointer to the response buffer
  * @return int response length if success, -1 if error
  */
-int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* response) {
+uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, int* rlen) {
     if (socketfd < 0) {
         ERROR("invalid socket\n");
-        return -1;
+        return NULL;
     }
 
     if (quantity < MODBUS_REG_QUANTITY_MIN || quantity > MODBUS_REG_QUANTITY_MAX) {
         ERROR("quantity must be between %d and %d\n", MODBUS_REG_QUANTITY_MIN, MODBUS_REG_QUANTITY_MAX);
-        return -1;
+        return NULL;
     }
 
     if (startingAddress < MODBUS_ADDRESS_MIN || startingAddress > MODBUS_ADDRESS_MAX) {
         ERROR("starting address must be between %d and %d\n", MODBUS_ADDRESS_MIN, MODBUS_ADDRESS_MAX);
-        return -1;
+        return NULL;
     }
 
     if (startingAddress + quantity > MODBUS_ADDRESS_MAX) {
         ERROR("starting address + quantity must be less than %d\n", MODBUS_ADDRESS_MAX);
-        return -1;
+        return NULL;
     }
 
     int len, sent, id;
     uint8_t* packet = newReadHoldingRegs(startingAddress, quantity, &len);
     if (packet == NULL) {
-        return -1;
+        return NULL;
     }
     id = readHoldingRegsFuncCode;
     sent = modbusSend(socketfd, id, packet, len);
@@ -98,32 +98,21 @@ int readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quanti
     free(packet);
 
     if (len != sent) {
-        ERROR("failed to send Read Holding Registers request\n");
-        return -1;
+        ERROR("failed to send Write Multiple Registers request\n\tlen: %d sent %d\n",
+              len, sent);
+        return NULL;
     }
 
-    // receive response
-    uint8_t* rBuffer = NULL;
-    len = modbusReceive(socketfd, id, rBuffer);
+    packet = NULL;
+    len = modbusReceive(socketfd, id, packet);
 
     if (len < 0) {
         ERROR("failed to receive Read Holding Registers response\n");
-        return -1;
+        return NULL;
     }
 
-    // convert byte array to uint16_t array
-    int responseLength = len / 2;
-    response = malloc(responseLength * sizeof(uint16_t));
-    if (response == NULL) {
-        MALLOC_ERR;
-        return -1;
-    }
-
-    for (int i = 0; i < responseLength; i++) {
-        response[i] = (uint16_t)rBuffer[2 * i] << 8 | (uint16_t)rBuffer[2 * i + 1];
-    }
-
-    return responseLength;
+    *rlen = len;
+    return packet;
 }
 
 /**
@@ -158,31 +147,31 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
     return pdu;
 }
 
-int writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data, uint16_t* response) {
+uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data, int* rlen) {
     if (socketfd < 0) {
         ERROR("invalid socket\n");
-        return -1;
+        return NULL;
     }
 
     if (quantity < MODBUS_REG_QUANTITY_MIN || quantity > MODBUS_REG_QUANTITY_MAX) {
         ERROR("quantity must be between %d and %d\n", MODBUS_REG_QUANTITY_MIN, MODBUS_REG_QUANTITY_MAX);
-        return -1;
+        return NULL;
     }
 
     if (startingAddress < MODBUS_ADDRESS_MIN || startingAddress > MODBUS_ADDRESS_MAX) {
         ERROR("starting address must be between %d and %d\n", MODBUS_ADDRESS_MIN, MODBUS_ADDRESS_MAX);
-        return -1;
+        return NULL;
     }
 
     if (startingAddress + quantity > MODBUS_ADDRESS_MAX) {
         ERROR("starting address + quantity must be less than %d\n", MODBUS_ADDRESS_MAX);
-        return -1;
+        return NULL;
     }
 
     int len, sent, id;
     uint8_t* packet = newWriteMultipleRegs(startingAddress, quantity, data, &len);
     if (packet == NULL) {
-        return -1;
+        return NULL;
     }
     id = writeMultipleRegsFuncCode;
     sent = modbusSend(socketfd, id, packet, len);
@@ -191,32 +180,21 @@ int writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quan
     free(packet);
 
     if (len != sent) {
-        ERROR("failed to send Write Multiple Registers request\n");
-        return -1;
+        ERROR("failed to send Write Multiple Registers request\n\tlen: %d sent %d\n",
+              len, sent);
+        return NULL;
     }
 
-    // receive response
-    uint8_t* rBuffer = NULL;
-    len = modbusReceive(socketfd, id, rBuffer);
+    packet = NULL;
+    len = modbusReceive(socketfd, id, packet);
 
     if (len < 0) {
-        ERROR("failed to receive Write Multiple Registers response\n");
-        return -1;
+        ERROR("failed to receive Read Holding Registers response\n");
+        return NULL;
     }
 
-    // convert byte array to uint16_t array
-    int responseLength = len / 2;
-    response = malloc(responseLength * sizeof(uint16_t));
-    if (response == NULL) {
-        MALLOC_ERR;
-        return -1;
-    }
-
-    for (int i = 0; i < responseLength; i++) {
-        response[i] = (uint16_t)rBuffer[2 * i] << 8 | (uint16_t)rBuffer[2 * i + 1];
-    }
-
-    return responseLength;
+    *rlen = len;
+    return packet;
 }
 
 #undef MALLOC_ERR
