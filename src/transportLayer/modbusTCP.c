@@ -45,28 +45,30 @@ int modbusSend(int socketfd, uint16_t id, uint8_t* pdu, int pLen) {
  * @param pdu pointer to the pdu buffer (must be freed by the caller)
  * @return int pdu length if success, -1 if error, -2 id mismatch
  */
-int modbusReceive(int socketfd, uint16_t id, uint8_t* pdu) {
+uint8_t* modbusReceive(int socketfd, uint16_t id, int* pduLen) {
     modbusADU* adu = receiveModbusADU(socketfd);
     if (adu == NULL) {
-        return -1;
+        return NULL;
     }
 
     if (adu->transactionID != id) {
         freeModbusADU(adu);
-        return -2;
+        return NULL;
     }
 
-    int pduLen = adu->length - 1;
-    pdu = (uint8_t*)malloc(pduLen);
+    *pduLen = adu->length - 1;
+    uint8_t* pdu = (uint8_t*)malloc(*pduLen);
     if (pdu == NULL) {
         MALLOC_ERR;
         freeModbusADU(adu);
-        return -1;
+        return NULL;
     }
 
-    memcpy(pdu, adu->pdu, pduLen);
+    memcpy(pdu, adu->pdu, *pduLen);
+
     freeModbusADU(adu);
-    return pduLen;
+
+    return pdu;
 }
 
 /**

@@ -104,13 +104,9 @@ int tcpSend(int socketfd, uint8_t* packet, int pLen) {
 int tcpReceive(int socketfd, uint8_t* packet, int pLen) {
     int received = 0;
 
-    int n = 0;
-    while (received < pLen) {
-        n = recv(socketfd, packet + received, pLen - received, 0);
-        if (n < 0) {
-            return -1;
-        }
-        received += n;
+    received = recv(socketfd, packet + received, pLen - received, 0);
+    if (received < 0) {
+        return -1;
     }
 
     return received;

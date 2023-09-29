@@ -103,8 +103,8 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t q
         return NULL;
     }
 
-    packet = NULL;
-    len = modbusReceive(socketfd, id, packet);
+    packet = modbusReceive(socketfd, id, &len);
+    printf("len: %d\n", len);
 
     if (len < 0) {
         ERROR("failed to receive Read Holding Registers response\n");
@@ -185,8 +185,7 @@ uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t
         return NULL;
     }
 
-    packet = NULL;
-    len = modbusReceive(socketfd, id, packet);
+    packet = modbusReceive(socketfd, id, &len);
 
     if (len < 0) {
         ERROR("failed to receive Read Holding Registers response\n");
