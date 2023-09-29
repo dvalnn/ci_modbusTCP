@@ -1,3 +1,5 @@
+#include "transportLayer/tcpControl.h"
+
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -7,8 +9,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "linkLayer/tcpControl.h"
 
 /**
  * @brief create a TCP socket and set timeout and keepalive options
