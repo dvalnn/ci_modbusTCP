@@ -25,12 +25,12 @@ typedef struct _modbusADU {
     uint16_t length;
     uint8_t unitIdentifier;
     uint8_t* pdu;
-} modbusADU;
+} ModbusADU;
 
-modbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen);
-void freeModbusADU(modbusADU* adu);
+ModbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen);
+void freeModbusADU(ModbusADU* adu);
 
-int sendModbusADU(int socketfd, modbusADU* adu);
-modbusADU* receiveModbusADU(int socketfd);
+int sendModbusADU(int socketfd, ModbusADU* adu);
+ModbusADU* receiveModbusADU(int socketfd);
 
 #endif  // _MODBUS_DATA_PACKAGING_H_

@@ -19,12 +19,12 @@
  * @param pduLen protocol data unit length
  * @return modbusADU* pointer to the created modbus ADU
  */
-modbusADU* _newModbusADU(uint16_t transactionID,
+ModbusADU* _newModbusADU(uint16_t transactionID,
                          uint16_t protocolIdentifier,
                          uint8_t unitIdentifier,
                          uint8_t* pdu,
                          int pduLen) {
-    modbusADU* adu = (modbusADU*)malloc(sizeof(modbusADU));
+    ModbusADU* adu = (ModbusADU*)malloc(sizeof(ModbusADU));
     if (adu == NULL) {
         MALLOC_ERR;
         return NULL;
@@ -59,7 +59,7 @@ modbusADU* _newModbusADU(uint16_t transactionID,
  * @return modbusADU* pointer to the created modbus ADU
  *         NUll if error
  */
-modbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
+ModbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
     if (transactionID < 0 || pdu == NULL || pduLen <= 0) {
         ERROR("newModbusADU: invalid parameters\n\ttransactionID: %d, pdu: %p, pduLen: %d\n",
               transactionID, pdu, pduLen);
@@ -74,7 +74,7 @@ modbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
  *
  * @param adu pointer to the modbus ADU to free
  */
-void freeModbusADU(modbusADU* adu) {
+void freeModbusADU(ModbusADU* adu) {
     if (adu == NULL)
         return;
 
@@ -89,7 +89,7 @@ void freeModbusADU(modbusADU* adu) {
  * @param adu modbus ADU to send
  * @return sent bytes if success, -1 if error
  */
-int sendModbusADU(int socketfd, modbusADU* adu) {
+int sendModbusADU(int socketfd, ModbusADU* adu) {
     if (socketfd < 0 || adu == NULL) {
         ERROR("sendModbusADU: invalid parameters\n");
         return -1;
@@ -137,13 +137,13 @@ int sendModbusADU(int socketfd, modbusADU* adu) {
  * @param socketfd socket file descriptor
  * @return modbusADU* pointer to the received modbus ADU, NULL if error
  */
-modbusADU* receiveModbusADU(int socketfd) {
+ModbusADU* receiveModbusADU(int socketfd) {
     if (socketfd < 0) {
         ERROR("receiveModbusADU: invalid parameters\n");
         return NULL;
     }
 
-    modbusADU* adu = _newModbusADU(0, 0, 0, NULL, 0);
+    ModbusADU* adu = _newModbusADU(0, 0, 0, NULL, 0);
 
     // receive the MBAP header
     uint8_t mbapHeader[MODBUS_MBAP_HEADER_SIZE];

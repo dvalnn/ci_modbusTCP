@@ -29,7 +29,7 @@
  * @return int sent bytes if success (< 0 if error)
  */
 int modbusSend(int socketfd, uint16_t id, uint8_t* pdu, int pLen) {
-    modbusADU* adu = newModbusADU(id, pdu, pLen);
+    ModbusADU* adu = newModbusADU(id, pdu, pLen);
     if (adu == NULL) {
         return -1;
     }
@@ -46,7 +46,7 @@ int modbusSend(int socketfd, uint16_t id, uint8_t* pdu, int pLen) {
  * @return int pdu length if success, -1 if error, -2 id mismatch
  */
 uint8_t* modbusReceive(int socketfd, uint16_t id, int* pduLen) {
-    modbusADU* adu = receiveModbusADU(socketfd);
+    ModbusADU* adu = receiveModbusADU(socketfd);
     if (adu == NULL) {
         return NULL;
     }
