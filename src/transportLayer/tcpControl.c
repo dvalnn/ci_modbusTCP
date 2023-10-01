@@ -62,13 +62,13 @@ int tcpCloseSocket(int socketfd) {
  *        -1 if a connection error occurs,
  *        -2 if the IP address is invalid
  */
-int tcpConnect(int socketfd, char* ip, int port) {
+int tcpConnect(int socketfd, char* ipString, int port) {
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
 
     // convert IPv4 addresses from text to binary form
-    if (inet_aton(ip, &server.sin_addr) == 0)
+    if (inet_aton(ipString, &server.sin_addr) == 0)
         return -2;
 
     return connect(socketfd, (struct sockaddr*)&server, sizeof(server));

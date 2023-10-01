@@ -7,7 +7,7 @@
 int tcpCloseSocket(int socketfd);
 int tcpOpenSocket(time_t seconds, suseconds_t microseconds);
 
-int tcpConnect(int socketfd, char* ip, int port);
+int tcpConnect(int socketfd, char* ipString, int port);
 
 int tcpSend(int socketfd, uint8_t* packet, int pLen);
 int tcpReceive(int socketfd, uint8_t* packet, int pLen);
