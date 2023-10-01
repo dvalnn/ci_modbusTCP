@@ -4,9 +4,6 @@
 
 #include <inttypes.h>
 
-#define PHYSICAL_ADDRESS_MIN 1
-#define PHYSICAL_ADDRESS_MAX 65536
-
 #define MODBUS_ADDRESS_MIN 0x0000       // 0
 #define MODBUS_ADDRESS_MAX 0xFFFF       // 65535
 #define MODBUS_REG_QUANTITY_MIN 0x0001  // 1
