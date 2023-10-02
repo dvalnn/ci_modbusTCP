@@ -7,9 +7,25 @@
 #include "log.h"
 
 void printArrayAsHex(void* s, int len) {
-    printf("Reply: ");
+    printf("8bHex: ");
     for (int i = 0; i < len; i++) {
         printf("%02X ", ((uint8_t*)s)[i]);
+    }
+    printf("\n");
+}
+
+void printByteArrayAsLongHex(void* s, int len) {
+    printf("16bHex: ");
+    for (int i = 0; i < len; i += 2) {
+        printf("%02X ", ((uint8_t*)s)[i] << 8 | ((uint8_t*)s)[i + 1]);
+    }
+    printf("\n");
+}
+
+void printByteArrayAsLongDec(void* s, int len) {
+    printf("Dec: ");
+    for (int i = 0; i < len; i += 2) {
+        printf("%d ", ((uint8_t*)s)[i] << 8 | ((uint8_t*)s)[i + 1]);
     }
     printf("\n");
 }
@@ -51,6 +67,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         printArrayAsHex(buffer, bufferLength);
+        printByteArrayAsLongHex(buffer + 2, bufferLength - 2);  // skip header
+        printByteArrayAsLongDec(buffer + 2, bufferLength - 2);
 
         free(buffer);
 
