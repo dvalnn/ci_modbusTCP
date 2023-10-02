@@ -66,6 +66,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         printArrayAsHex(buffer, bufferLength);
+        free(buffer);
 
         writeValue = (writeValue + 1) % 0xFFFF;
         sleep(1);
