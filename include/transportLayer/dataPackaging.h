@@ -33,4 +33,7 @@ void freeModbusADU(ModbusADU* adu);
 int sendModbusADU(int socketfd, ModbusADU* adu);
 ModbusADU* receiveModbusADU(int socketfd);
 
+#define UNIT_ID 1
+#define PROTOCOL_ID 0
+
 #endif  // _MODBUS_DATA_PACKAGING_H_

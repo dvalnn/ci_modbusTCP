@@ -66,7 +66,7 @@ ModbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
         return NULL;
     }
 
-    return _newModbusADU(transactionID, 0, 1, pdu, pduLen);
+    return _newModbusADU(transactionID, PROTOCOL_ID, UNIT_ID, pdu, pduLen);
 }
 
 /**
