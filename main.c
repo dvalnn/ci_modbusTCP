@@ -56,6 +56,8 @@ int main(int argc, char* argv[]) {
 
     uint16_t transactionID = 0;
 
+    int retval = 0;
+
     int bufferLength = 0;
     for (;;) {
         printf("\nRead Holding Registers request\n");
@@ -68,7 +70,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         if (buffer[0] & 0x80) {
-            printf("Error code: %d\n", buffer[1]);
+            ERROR("Exeption %d code: %d\n", buffer[0], buffer[1]);
+            retval = buffer[1];
             break;
         }
         printArrayAsHex(buffer, bufferLength);
@@ -87,7 +90,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         if (buffer[0] & 0x80) {
-            printf("Error code: %d\n", buffer[1]);
+            ERROR("Exeption %d code: %d\n", buffer[0], buffer[1]);
+            retval = buffer[1];
             break;
         }
         printArrayAsHex(buffer, bufferLength);
@@ -98,5 +102,5 @@ int main(int argc, char* argv[]) {
     }
 
     disconnectFromServer(socketfd);
-    return 0;
+    return retval;
 }
