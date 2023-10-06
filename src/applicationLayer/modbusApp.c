@@ -71,8 +71,8 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t q
         return NULL;
     }
 
-    if (quantity < MODBUS_REG_QUANTITY_MIN || quantity > MODBUS_REG_QUANTITY_MAX) {
-        ERROR("quantity must be between %d and %d\n", MODBUS_REG_QUANTITY_MIN, MODBUS_REG_QUANTITY_MAX);
+    if (quantity < MODBUS_QUANTITY_MIN || quantity > MODBUS_RHR_QUANTITY_MAX) {
+        ERROR("quantity must be between %d and %d\n", MODBUS_QUANTITY_MIN, MODBUS_RHR_QUANTITY_MAX);
         return NULL;
     }
 
@@ -152,8 +152,8 @@ uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t
         return NULL;
     }
 
-    if (quantity < MODBUS_REG_QUANTITY_MIN || quantity > MODBUS_REG_QUANTITY_MAX) {
-        ERROR("quantity must be between %d and %d\n", MODBUS_REG_QUANTITY_MIN, MODBUS_REG_QUANTITY_MAX);
+    if (quantity < MODBUS_QUANTITY_MIN || quantity > MODBUS_WMR_QUANTITY_MAX) {
+        ERROR("quantity must be between %d and %d\n", MODBUS_QUANTITY_MIN, MODBUS_WMR_QUANTITY_MAX);
         return NULL;
     }
 
