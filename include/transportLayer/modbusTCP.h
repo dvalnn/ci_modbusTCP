@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <sys/time.h>
 
-#define MODBUS_TIMEOUT_SEC 3
+#define MODBUS_TIMEOUT_SEC 1
 #define MODBUS_TIMEOUT_USEC 0
 
 #define MODBUS_TCP_PORT 502
