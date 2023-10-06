@@ -13,8 +13,8 @@
 /**
  * @brief Connect to the server
  *
- * @param ip
- * @param port
+ * @param ip server ip string
+ * @param port server port
  *
  * @return socket file descriptor, -1 if error
  */
@@ -25,19 +25,19 @@ int connectToServer(char* ip, int port) {
 /**
  * @brief Disconnect from the server
  *
- * @param socketfd
+ * @param socketfd socket file descriptor
  */
 void disconnectFromServer(int socketfd) {
     modbusDisconnect(socketfd);
 }
 
 /**
- * @brief
+ * @brief Create a Read Holding Registers request
  *
- * @param startingAddress
- * @param quantity
- * @param len
- * @return uint8_t*
+ * @param startingAddress starting address of the registers to read
+ * @param quantity number of registers to read
+ * @param len pointer to the length of the request
+ * @return uint8_t* pointer to the request created -- must be freed by the caller
  */
 uint8_t* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, int* len) {
     *len = 5;  // 1 byte for function code + 2 bytes for starting address + 2 bytes for quantity
@@ -115,12 +115,13 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t q
 }
 
 /**
- * @brief create a new modbusPDU formated with a Write Multiple Registers request
+ * @brief Create a Write Multiple Registers request
  *
  * @param startingAddress starting address of the registers to write
  * @param quantity number of registers to write
  * @param data pointer to the data to write
- * @return modbusPDU* pointer to the modbusPDU instance
+ * @param len pointer to the length of the request
+ * @return uint8_t* pointer to the request created -- must be freed by the caller
  */
 uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint16_t* data, int* len) {
     *len = quantity * 2 + 6;  // 2 bytes for starting address + 2 bytes for quantity
@@ -146,6 +147,16 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
     return pdu;
 }
 
+/**
+ * @brief send a Write Multiple Registers request to the server
+ *
+ * @param socketfd socket file descriptor
+ * @param startingAddress starting address of the registers to write
+ * @param quantity quantity of registers to write
+ * @param data pointer to the data to write
+ * @param rlen pointer to the response length
+ * @return uint8_t* pointer to the response buffer -- must be freed by the caller
+ */
 uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data, int* rlen) {
     if (socketfd < 0) {
         ERROR("invalid socket\n");
