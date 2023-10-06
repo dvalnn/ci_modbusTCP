@@ -65,7 +65,7 @@ uint8_t* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, int* le
  * @param response pointer to the response buffer
  * @return int response length if success, -1 if error
  */
-uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, int* rlen) {
+uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t id, uint16_t quantity, int* rlen) {
     if (socketfd < 0) {
         ERROR("invalid socket\n");
         return NULL;
@@ -86,12 +86,12 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t q
         return NULL;
     }
 
-    int len, sent, id;
+    int len, sent;
     uint8_t* packet = newReadHoldingRegs(startingAddress, quantity, &len);
     if (packet == NULL) {
         return NULL;
     }
-    id = readHoldingRegsFuncCode;
+
     sent = modbusSend(socketfd, id, packet, len);
 
     // free memory
@@ -157,7 +157,7 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
  * @param rlen pointer to the response length
  * @return uint8_t* pointer to the response buffer -- must be freed by the caller
  */
-uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t quantity, uint16_t* data, int* rlen) {
+uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t id, uint16_t quantity, uint16_t* data, int* rlen) {
     if (socketfd < 0) {
         ERROR("invalid socket\n");
         return NULL;
@@ -178,12 +178,12 @@ uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t
         return NULL;
     }
 
-    int len, sent, id;
+    int len, sent;
     uint8_t* packet = newWriteMultipleRegs(startingAddress, quantity, data, &len);
     if (packet == NULL) {
         return NULL;
     }
-    id = writeMultipleRegsFuncCode;
+
     sent = modbusSend(socketfd, id, packet, len);
 
     // free memory
