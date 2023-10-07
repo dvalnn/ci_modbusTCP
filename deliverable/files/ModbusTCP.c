@@ -258,12 +258,12 @@ int sendModbusADU(int socketfd, ModbusADU* adu) {
 
     // create the MBAP header
     uint8_t mbapHeader[MODBUS_MBAP_HEADER_SIZE];
-    mbapHeader[0] = (adu->transactionID >> 8) & 0xFF;
-    mbapHeader[1] = adu->transactionID & 0xFF;
-    mbapHeader[2] = (adu->protocolIdentifier >> 8) & 0xFF;
-    mbapHeader[3] = adu->protocolIdentifier & 0xFF;
-    mbapHeader[4] = (adu->length >> 8) & 0xFF;
-    mbapHeader[5] = adu->length & 0xFF;
+    mbapHeader[0] = (uint8_t)((adu->transactionID >> 8) & 0xFF);
+    mbapHeader[1] = (uint8_t)(adu->transactionID & 0xFF);
+    mbapHeader[2] = (uint8_t)((adu->protocolIdentifier >> 8) & 0xFF);
+    mbapHeader[3] = (uint8_t)(adu->protocolIdentifier & 0xFF);
+    mbapHeader[4] = (uint8_t)((adu->length >> 8) & 0xFF);
+    mbapHeader[5] = (uint8_t)(adu->length & 0xFF);
     mbapHeader[6] = adu->unitIdentifier;
 
     // pdu length = adu->length - unit identifier
@@ -315,9 +315,9 @@ ModbusADU* receiveModbusADU(int socketfd) {
     }
 
     // parse the MBAP header
-    adu->transactionID = (mbapHeader[0] << 8) | mbapHeader[1];
-    adu->protocolIdentifier = (mbapHeader[2] << 8) | mbapHeader[3];
-    adu->length = (mbapHeader[4] << 8) | mbapHeader[5];
+    adu->transactionID = (uint16_t)((mbapHeader[0] << 8) | mbapHeader[1]);
+    adu->protocolIdentifier = (uint16_t)((mbapHeader[2] << 8) | mbapHeader[3]);
+    adu->length = (uint16_t)((mbapHeader[4] << 8) | mbapHeader[5]);
     adu->unitIdentifier = mbapHeader[6];
 
     // pdu length = adu->length - unit identifier
