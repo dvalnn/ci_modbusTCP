@@ -3,7 +3,7 @@
 import argparse
 import logging
 from datetime import datetime
-from pyModbusTCP.server import ModbusServer, DataBank, DataHandler
+from pyModbusTCP.server import ModbusServer, DataBank
 
 v_regs_d = [0x0000 for _ in range(0, 127)]
 
@@ -12,19 +12,6 @@ v_regs_d[122] = 0x0002
 v_regs_d[123] = 0x0003
 v_regs_d[124] = 0x0004
 # v_regs_d[125] = 0x270F
-
-
-class MyDataHandler(DataHandler):
-    def __init__(self, unit_id, data_bank):
-        super().__init__()
-        self.unit_id = unit_id
-        self.data_bank = data_bank
-
-    def handle_read_holding_registers(self, start_addr, quantity):
-        if self._get_unit_id() == self.unit_id:
-            return super().handle_read_holding_registers(start_addr, quantity)
-        else:
-            return None
 
 
 class MyDataBank(DataBank):
@@ -83,11 +70,6 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 
     # init modbus server and start it
-    server = ModbusServer(
-        host=args.host,
-        port=args.port,
-        data_hdl=MyDataHandler(51, MyDataBank()),
-    )
-
+    server = ModbusServer(host=args.host, port=args.port, data_bank=MyDataBank())
     logging.info("Start server...")
     server.start()
