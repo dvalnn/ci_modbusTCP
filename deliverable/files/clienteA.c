@@ -4,7 +4,7 @@
 #include "ModbusAP.h"
 
 // comment this line to disable debug messages
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 

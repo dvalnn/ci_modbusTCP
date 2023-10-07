@@ -8,8 +8,6 @@
 // comment this line to disable debug messages
 // #define DEBUG
 
-#define DEBUG
-
 #ifdef DEBUG
 
 #define INFO(...) fprintf(stdout, "[INFO] " __VA_ARGS__)
