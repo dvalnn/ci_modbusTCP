@@ -1,0 +1,8 @@
+Ficheiro fonte (em "C") com o nome ClienteA.c e que gera o executável clientea.exe (uauuuu muito fixe!)
+
+Em particular, o programa deve ser compilável com o comando:
+            $gcc clienteA.c ModbusTCP.c ModbusAP.c -o clienteA
+
+
+
+dumbass file structure for final project delivery
