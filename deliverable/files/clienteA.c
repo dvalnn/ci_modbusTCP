@@ -188,6 +188,7 @@ int main() {
 
     INFO("Part 4 done\n");
 
+#pragma region Part 5
     // 5. Write C to register 128 REMOTEHOST
 
     socketfd = connectToServer(REMOTEHOST, PORT);
@@ -226,6 +227,8 @@ int main() {
     free(response1);
 
     disconnectFromServer(socketfd);
+    
+#pragma endregion  // Part 5
 
     printf("result = 0\n");
     return 0;

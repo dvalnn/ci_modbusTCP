@@ -14,13 +14,17 @@
 // comment this line to disable debug messages
 // #define DEBUG
 
+#define DEBUG
+
 #ifdef DEBUG
 
+#define INFO(...) fprintf(stdout, "[INFO] " __VA_ARGS__)
 #define ERROR(...) fprintf(stderr, "[ERROR] " __VA_ARGS__)
 #define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
 
 #else
 
+#define INFO(...)
 #define ERROR(...)
 #define MALLOC_ERR
 

@@ -8,18 +8,21 @@
 // comment this line to disable debug messages
 // #define DEBUG
 
+#define DEBUG
+
 #ifdef DEBUG
 
+#define INFO(...) fprintf(stdout, "[INFO] " __VA_ARGS__)
 #define ERROR(...) fprintf(stderr, "[ERROR] " __VA_ARGS__)
 #define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
 
 #else
 
+#define INFO(...)
 #define ERROR(...)
 #define MALLOC_ERR
 
 #endif
-
 /**
  * @brief Connect to the server
  *
@@ -150,8 +153,8 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
 
     // set pdu request data in Big Endian format
     for (int i = 0; i < quantity; i++) {
-        pdu[2 * i + 6] = (uint8_t)data[i] >> 8;    // high byte
-        pdu[2 * i + 7] = (uint8_t)data[i] & 0xFF;  // low byte
+        pdu[2 * i + 6] = (uint8_t)(data[i] >> 8);    // high byte
+        pdu[2 * i + 7] = (uint8_t)(data[i] & 0xFF);  // low byte
     }
 
     return pdu;
