@@ -4,15 +4,17 @@
 #include "ModbusAP.h"
 
 // comment this line to disable debug messages
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 
+#define INFO(...) fprintf(stdout, "[INFO] " __VA_ARGS__)
 #define ERROR(...) fprintf(stderr, "[ERROR] " __VA_ARGS__)
 #define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
 
 #else
 
+#define INFO(...)
 #define ERROR(...)
 #define MALLOC_ERR
 
@@ -25,7 +27,7 @@
 int main() {
     int socketfd = connectToServer(LOCALHOST, PORT);
     if (socketfd == -1) {
-        ERROR("connectToServer failed\n");
+        ERROR("connect to local host failed\n");
         printf("result = -1\n");
         return -1;
     }
@@ -63,6 +65,8 @@ int main() {
 
     free(response1);
 
+    INFO("Part 1 done\n");
+
     // 2. read values from registers 122-125
 
     startingAddress = 121;
@@ -91,6 +95,8 @@ int main() {
         return -1;
     }
 
+    INFO("Part 2 done\n");
+
     // 3. read the value from register 126
     startingAddress = 125;
     quantity = 1;
@@ -112,31 +118,40 @@ int main() {
     }
 
     // check if rLen2 is correct (should be 4 - 2 bytes for function code and byte count, 2 bytes for data)
-    if (rLen2 != 5) {
+    if (rLen2 != 4) {
         ERROR("readHoldingRegisters: incorrect response lenght\n");
         printf("result = -1\n");
         return -1;
     }
 
-    // 3.5 calculate C
+    INFO("Part 3 done\n");
 
-    uint16_t A[8] = {0};
-    uint16_t B = response2[3] << 8 | response2[4];
+    // 3.5 calculate C
+    uint8_t *responseData = &response1[2];
+
+    uint16_t A[4] = {
+        responseData[0] << 8 | responseData[1],
+        responseData[2] << 8 | responseData[3],
+        responseData[4] << 8 | responseData[5],
+        responseData[6] << 8 | responseData[7]};
+
+    uint16_t B = response2[2] << 8 | response2[3];
+
     uint16_t C = 0;
 
     if (B == 0) {
         C = 9999;
     } else {
-        // convert response1 to uint16_t array
-        for (int i = 2; i < rLen1; i += 2) {
-            A[i] = response1[i] << 8 | response1[i + 1];
-        }
-
         C = A[0] + A[3];
     }
 
     free(response1);
     free(response2);
+
+    INFO("Part 3.5 done\n");
+    INFO("A = %04X %04X %04X %04X \n", A[0], A[1], A[2], A[3]);
+    INFO("B = %04X\n", B);
+    INFO("C = %04X\n", C);
 
     // 4. write C to register 127 LOCALHOST
     startingAddress = 126;
@@ -171,11 +186,13 @@ int main() {
 
     disconnectFromServer(socketfd);
 
+    INFO("Part 4 done\n");
+
     // 5. Write C to register 128 REMOTEHOST
 
     socketfd = connectToServer(REMOTEHOST, PORT);
     if (socketfd == -1) {
-        ERROR("connectToServer failed\n");
+        ERROR("connect to Remote Host failed\n");
         printf("result = -1\n");
         return -1;
     }
@@ -209,4 +226,7 @@ int main() {
     free(response1);
 
     disconnectFromServer(socketfd);
+
+    printf("result = 0\n");
+    return 0;
 }
