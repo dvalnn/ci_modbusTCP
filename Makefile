@@ -14,7 +14,6 @@ RUNARGS = 127.0.0.1 502
 
 SRC = src
 INCLUDE = include
-LIB = lib
 BIN = bin
 
 APP = main.c
@@ -25,14 +24,14 @@ BUILDEXTENS = exe
 .PHONY: all
 all: $(BIN)/app.$(BUILDEXTENS)
 
-$(BIN)/app.$(BUILDEXTENS): $(APP) $(SRC)/**/*.c $(LIB)/*c
-	$(CC) $(CFLAGS) -o $@ $^ -I$(INCLUDE) -I$(LIB) -lrt
+$(BIN)/app.$(BUILDEXTENS): $(APP) $(SRC)/**/*.c 
+	$(CC) $(CFLAGS) -o $@ $^ -I$(INCLUDE) -lrt
 
 .PHONY: debug
 debug: $(BIN)/app.$(DEBUGEXTENS)
 
-$(BIN)/app.$(DEBUGEXTENS): $(APP) $(SRC)/**/*.c $(LIB)/*c
-	$(CC) $(CFLAGS) $(DEBUGFLAGS) -o $@ $^ -I$(INCLUDE) -I$(LIB) -lrt
+$(BIN)/app.$(DEBUGEXTENS): $(APP) $(SRC)/**/*.c
+	$(CC) $(CFLAGS) $(DEBUGFLAGS) -o $@ $^ -I$(INCLUDE) -lrt
 
 
 .PHONY: run
