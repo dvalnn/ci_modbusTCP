@@ -5,7 +5,13 @@ import logging
 from datetime import datetime
 from pyModbusTCP.server import ModbusServer, DataBank
 
-v_regs_d = [0 for _ in range(10)]
+v_regs_d = [0x0000 for _ in range(0, 127)]
+
+v_regs_d[121] = 0x0001
+v_regs_d[122] = 0x0002
+v_regs_d[123] = 0x0003
+v_regs_d[124] = 0x0004
+# v_regs_d[125] = 0x270F
 
 
 class MyDataBank(DataBank):
@@ -40,8 +46,8 @@ class MyDataBank(DataBank):
         try:
             for a in range(address, address + len(word_list)):
                 logging.info(
-                    "reg[%d] change from %d to %d"
-                    % (a, v_regs_d[a], word_list[a - address])
+                    "reg[%d] change from %04X to %04X"
+                    % (a + 1, v_regs_d[a], word_list[a - address])
                 )
                 v_regs_d[a] = word_list[a - address]
             return True
