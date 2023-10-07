@@ -2,3 +2,4 @@
 bin
 valgrind-out.txt
 test/wiresharkCaps
+*.exe
