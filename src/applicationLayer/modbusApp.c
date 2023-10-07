@@ -46,10 +46,10 @@ uint8_t* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, int* le
     }
 
     pdu[0] = (uint8_t)readHoldingRegsFuncCode;
-    pdu[1] = (uint8_t)startingAddress >> 8;
-    pdu[2] = (uint8_t)startingAddress & 0xFF;
-    pdu[3] = (uint8_t)quantity >> 8;
-    pdu[4] = (uint8_t)quantity & 0xFF;
+    pdu[1] = (uint8_t)(startingAddress >> 8);
+    pdu[2] = (uint8_t)(startingAddress & 0xFF);
+    pdu[3] = (uint8_t)(quantity >> 8);
+    pdu[4] = (uint8_t)(quantity & 0xFF);
 
     return pdu;
 }
@@ -130,16 +130,16 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
     }
 
     pdu[0] = (uint8_t)writeMultipleRegsFuncCode;
-    pdu[1] = (uint8_t)startingAddress >> 8;
-    pdu[2] = (uint8_t)startingAddress & 0xFF;
-    pdu[3] = (uint8_t)quantity >> 8;
-    pdu[4] = (uint8_t)quantity & 0xFF;
-    pdu[5] = (uint8_t)quantity * 2;  // number of bytes to follow
+    pdu[1] = (uint8_t)(startingAddress >> 8);
+    pdu[2] = (uint8_t)(startingAddress & 0xFF);
+    pdu[3] = (uint8_t)(quantity >> 8);
+    pdu[4] = (uint8_t)(quantity & 0xFF);
+    pdu[5] = (uint8_t)(quantity * 2);  // number of bytes to follow
 
     // set pdu request data in Big Endian format
     for (int i = 0; i < quantity; i++) {
-        pdu[2 * i + 6] = (uint8_t)data[i] >> 8;    // high byte
-        pdu[2 * i + 7] = (uint8_t)data[i] & 0xFF;  // low byte
+        pdu[2 * i + 6] = (uint8_t)(data[i] >> 8);    // high byte
+        pdu[2 * i + 7] = (uint8_t)(data[i] & 0xFF);  // low byte
     }
 
     return pdu;
