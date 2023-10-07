@@ -12,8 +12,6 @@
 #include <unistd.h>
 
 #include "log.h"
-#include "sds.h"
-#include "sdsalloc.h"
 #include "transportLayer/dataPackaging.h"
 #include "transportLayer/tcpControl.h"
 

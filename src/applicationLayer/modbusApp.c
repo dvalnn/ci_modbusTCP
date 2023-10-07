@@ -4,8 +4,6 @@
 #include <stdlib.h>
 
 #include "log.h"
-#include "sds.h"
-#include "sdsalloc.h"
 #include "transportLayer/modbusTCP.h"
 
 #define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
