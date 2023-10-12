@@ -10,7 +10,8 @@
 
 #define INFO(...) fprintf(stdout, "[INFO] " __VA_ARGS__)
 #define ERROR(...) fprintf(stderr, "[ERROR] " __VA_ARGS__)
-#define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
+#define MALLOC_ERR \
+    ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
 
 #else
 
@@ -70,12 +71,10 @@ int main() {
     //* 1. write 0x41 to the 121th register
     uint16_t data1[] = {0x41};
 
-    response1 = writeMultipleRegisters(socketfd,
-                                       transactionID,
-                                       startingAddress,
-                                       quantity,
-                                       data1, &rLen1);
-    // expected response length: 5 bytes- 1 for function code, 2 for starting address, 2 for quantity
+    response1 = writeMultipleRegisters(socketfd, transactionID, startingAddress,
+                                       quantity, data1, &rLen1);
+    // expected response length: 5 bytes- 1 for function code, 2 for starting
+    // address, 2 for quantity
     error = checkForExceptions(response1, rLen1, 5);
     if (error != 0) {
         ERROR("exit on %s, %d\n", __FILE__, __LINE__);
@@ -94,9 +93,7 @@ int main() {
 
     transactionID = 2;
 
-    response1 = readHoldingRegisters(socketfd,
-                                     transactionID,
-                                     startingAddress,
+    response1 = readHoldingRegisters(socketfd, transactionID, startingAddress,
                                      quantity, &rLen1);
     error = checkForExceptions(response1, rLen1, 10);
     if (error != 0) {
@@ -113,9 +110,7 @@ int main() {
 
     transactionID = 3;
 
-    response2 = readHoldingRegisters(socketfd,
-                                     transactionID,
-                                     startingAddress,
+    response2 = readHoldingRegisters(socketfd, transactionID, startingAddress,
                                      quantity, &rLen2);
     error = checkForExceptions(response2, rLen2, 4);
     if (error != 0) {
@@ -155,11 +150,8 @@ int main() {
 
     uint16_t data2[] = {C};
 
-    response1 = writeMultipleRegisters(socketfd,
-                                       transactionID,
-                                       startingAddress,
-                                       quantity,
-                                       data2, &rLen1);
+    response1 = writeMultipleRegisters(socketfd, transactionID, startingAddress,
+                                       quantity, data2, &rLen1);
     error = checkForExceptions(response1, rLen1, 5);
     if (error != 0) {
         ERROR("exit on %s, %d\n", __FILE__, __LINE__);
@@ -188,7 +180,8 @@ int main() {
 
     transactionID = 5;
 
-    response1 = writeMultipleRegisters(socketfd, startingAddress, transactionID, quantity, data2, &rLen1);
+    response1 = writeMultipleRegisters(socketfd, startingAddress, transactionID,
+                                       quantity, data2, &rLen1);
     error = checkForExceptions(response1, rLen1, 5);
     if (error != 0) {
         ERROR("exit on %s, %d\n", __FILE__, __LINE__);

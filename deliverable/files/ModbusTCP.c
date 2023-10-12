@@ -18,7 +18,8 @@
 
 #define INFO(...) fprintf(stdout, "[INFO] " __VA_ARGS__)
 #define ERROR(...) fprintf(stderr, "[ERROR] " __VA_ARGS__)
-#define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
+#define MALLOC_ERR \
+    ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
 
 #else
 
@@ -28,10 +29,9 @@
 
 #endif
 
-//*************************************************************************************************
-//*****************************************  TCP CONTROL  *****************************************
-//*************************************************************************************************
-
+//*****************************************************************************
+//******************************  TCP CONTROL *********************************
+//*****************************************************************************
 /**
  * @brief create a TCP socket and set timeout and keepalive options
  *
@@ -43,20 +43,21 @@
  */
 int tcpOpenSocket(time_t seconds, suseconds_t microseconds) {
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketfd < 0)
-        return -1;
+    if (socketfd < 0) return -1;
 
     // set timeout
     struct timeval timeout;
     timeout.tv_sec = seconds;
     timeout.tv_usec = microseconds;
 
-    if (setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0)
+    if (setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout,
+                   sizeof(timeout)) < 0)
         return -2;
 
     // set keepalive
     int optval = 1;
-    if (setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) < 0)
+    if (setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval,
+                   sizeof(optval)) < 0)
         return -2;
 
     return socketfd;
@@ -68,9 +69,7 @@ int tcpOpenSocket(time_t seconds, suseconds_t microseconds) {
  * @param socketd socket file descriptor
  * @return 0 if success, -1 if error
  */
-int tcpCloseSocket(int socketfd) {
-    return close(socketfd);
-}
+int tcpCloseSocket(int socketfd) { return close(socketfd); }
 
 /**
  * @brief connect to a TCP server
@@ -88,8 +87,7 @@ int tcpConnect(int socketfd, char* ipString, int port) {
     server.sin_port = htons(port);
 
     // convert IPv4 addresses from text to binary form
-    if (inet_aton(ipString, &server.sin_addr) == 0)
-        return -2;
+    if (inet_aton(ipString, &server.sin_addr) == 0) return -2;
 
     return connect(socketfd, (struct sockaddr*)&server, sizeof(server));
 }
@@ -135,10 +133,9 @@ int tcpReceive(int socketfd, uint8_t* packet, int pLen) {
     return received;
 }
 
-//*************************************************************************************************
-//*****************************************  DATA PACKAGING  **************************************
-//*************************************************************************************************
-
+//*****************************************************************************
+//****************************** DATA PACKAGING *******************************
+//*****************************************************************************
 /**
  * @brief modbus ADU (Application Data Unit) structure
  *
@@ -178,11 +175,8 @@ typedef struct _modbusADU {
  * @param pduLen protocol data unit length
  * @return modbusADU* pointer to the created modbus ADU
  */
-ModbusADU* _newModbusADU(uint16_t transactionID,
-                         uint16_t protocolIdentifier,
-                         uint8_t unitIdentifier,
-                         uint8_t* pdu,
-                         int pduLen) {
+ModbusADU* _newModbusADU(uint16_t transactionID, uint16_t protocolIdentifier,
+                         uint8_t unitIdentifier, uint8_t* pdu, int pduLen) {
     ModbusADU* adu = (ModbusADU*)malloc(sizeof(ModbusADU));
     if (adu == NULL) {
         MALLOC_ERR;
@@ -220,8 +214,10 @@ ModbusADU* _newModbusADU(uint16_t transactionID,
  */
 ModbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
     if (transactionID < 0 || pdu == NULL || pduLen <= 0) {
-        ERROR("newModbusADU: invalid parameters\n\ttransactionID: %d, pdu: %p, pduLen: %d\n",
-              transactionID, pdu, pduLen);
+        ERROR(
+            "newModbusADU: invalid parameters\n\ttransactionID: %d, pdu: %p, "
+            "pduLen: %d\n",
+            transactionID, pdu, pduLen);
         return NULL;
     }
 
@@ -234,8 +230,7 @@ ModbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
  * @param adu pointer to the modbus ADU to free
  */
 void freeModbusADU(ModbusADU* adu) {
-    if (adu == NULL)
-        return;
+    if (adu == NULL) return;
 
     free(adu->pdu);
     free(adu);
@@ -269,7 +264,8 @@ int sendModbusADU(int socketfd, ModbusADU* adu) {
 
     // concatenate the MBAP header and the PDU
     // the MBAP header is not included in the length field
-    uint8_t* packet = (uint8_t*)malloc((MODBUS_MBAP_HEADER_SIZE + pduLen) * sizeof(*packet));
+    uint8_t* packet =
+        (uint8_t*)malloc((MODBUS_MBAP_HEADER_SIZE + pduLen) * sizeof(*packet));
     if (packet == NULL) {
         MALLOC_ERR;
         return -1;
@@ -338,9 +334,9 @@ ModbusADU* receiveModbusADU(int socketfd) {
     return adu;
 }
 
-//*************************************************************************************************
-//*****************************************  MODBUS TCP  *****************************************
-//*************************************************************************************************
+//*****************************************************************************
+//*********************************  MODBUS TCP *******************************
+//*****************************************************************************
 
 /**
  * @brief send a modbus Request
@@ -404,7 +400,8 @@ uint8_t* modbusReceive(int socketfd, uint16_t id, int* pduLen) {
  * @param microseconds connection timeout microseconds
  * @return socket file descriptor if success, -1 if error
  */
-int modbusConnect(char* ip, int port, time_t seconds, suseconds_t microseconds) {
+int modbusConnect(char* ip, int port, time_t seconds,
+                  suseconds_t microseconds) {
     int socketfd = tcpOpenSocket(seconds, microseconds);
     if (socketfd < 0) {
         ERROR("Cannot opening tcp socket: \n\tError code: %d\n", socketfd);
@@ -426,6 +423,4 @@ int modbusConnect(char* ip, int port, time_t seconds, suseconds_t microseconds) 
  * @param socketfd socket file descriptor
  * @return 0 if success, -1 if error
  */
-int modbusDisconnect(int socketfd) {
-    return tcpCloseSocket(socketfd);
-}
+int modbusDisconnect(int socketfd) { return tcpCloseSocket(socketfd); }

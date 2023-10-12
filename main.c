@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     }
 
     uint16_t readQuantity = 10;
-    uint16_t readAddress = 0;
+    uint16_t readAddr = 0;
 
     uint16_t writeAddress = 7;
     uint16_t writeValue = 0;
@@ -58,13 +58,14 @@ int main(int argc, char* argv[]) {
 
     int retval = 0;
 
-    int bufferLength = 0;
+    int buffLen = 0;
     for (;;) {
         printf("\nRead Holding Registers request\n");
-        printf("starting address: %d, quantity: %d\n", readAddress, readQuantity);
+        printf("starting address: %d, quantity: %d\n", readAddr, readQuantity);
 
         transactionID++;
-        buffer = readHoldingRegisters(socketfd, transactionID, readAddress, readQuantity, &bufferLength);
+        buffer = readHoldingRegisters(socketfd, transactionID, readAddr,
+                                      readQuantity, &buffLen);
         if (buffer == NULL) {
             ERROR("Read Holding Registers failed\n");
             break;
@@ -74,9 +75,9 @@ int main(int argc, char* argv[]) {
             retval = buffer[1];
             break;
         }
-        printArrayAsHex(buffer, bufferLength);
-        printByteArrayAsLongHex(buffer + 2, bufferLength - 2);  // skip header
-        printByteArrayAsLongDec(buffer + 2, bufferLength - 2);
+        printArrayAsHex(buffer, buffLen);
+        printByteArrayAsLongHex(buffer + 2, buffLen - 2);  // skip header
+        printByteArrayAsLongDec(buffer + 2, buffLen - 2);
 
         free(buffer);
 
@@ -84,7 +85,8 @@ int main(int argc, char* argv[]) {
         printf("address: %d, value: %d\n", writeAddress, writeValue);
 
         transactionID++;
-        buffer = writeMultipleRegisters(socketfd, transactionID, writeAddress, writeQuantity, &writeValue, &bufferLength);
+        buffer = writeMultipleRegisters(socketfd, transactionID, writeAddress,
+                                        writeQuantity, &writeValue, &buffLen);
         if (buffer == NULL) {
             ERROR("Write Single Register failed\n");
             break;
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]) {
             retval = buffer[1];
             break;
         }
-        printArrayAsHex(buffer, bufferLength);
+        printArrayAsHex(buffer, buffLen);
         free(buffer);
 
         writeValue = (writeValue + 1) % 0xFFFF;
