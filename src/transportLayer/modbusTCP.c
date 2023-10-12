@@ -15,7 +15,8 @@
 #include "transportLayer/dataPackaging.h"
 #include "transportLayer/tcpControl.h"
 
-#define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
+#define MALLOC_ERR \
+    ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
 
 /**
  * @brief send a modbus Request
@@ -79,7 +80,8 @@ uint8_t* modbusReceive(int socketfd, uint16_t id, int* pduLen) {
  * @param microseconds connection timeout microseconds
  * @return socket file descriptor if success, -1 if error
  */
-int modbusConnect(char* ip, int port, time_t seconds, suseconds_t microseconds) {
+int modbusConnect(char* ip, int port, time_t seconds,
+                  suseconds_t microseconds) {
     int socketfd = tcpOpenSocket(seconds, microseconds);
     if (socketfd < 0) {
         ERROR("Cannot opening tcp socket: \n\tError code: %d\n", socketfd);
@@ -101,8 +103,6 @@ int modbusConnect(char* ip, int port, time_t seconds, suseconds_t microseconds) 
  * @param socketfd socket file descriptor
  * @return 0 if success, -1 if error
  */
-int modbusDisconnect(int socketfd) {
-    return tcpCloseSocket(socketfd);
-}
+int modbusDisconnect(int socketfd) { return tcpCloseSocket(socketfd); }
 
 #undef MALLOC_ERR
