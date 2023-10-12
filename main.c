@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
         printf("starting address: %d, quantity: %d\n", readAddress, readQuantity);
 
         transactionID++;
-        buffer = readHoldingRegisters(socketfd, readAddress, transactionID, readQuantity, &bufferLength);
+        buffer = readHoldingRegisters(socketfd, transactionID, readAddress, readQuantity, &bufferLength);
         if (buffer == NULL) {
             ERROR("Read Holding Registers failed\n");
             break;
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
         printf("address: %d, value: %d\n", writeAddress, writeValue);
 
         transactionID++;
-        buffer = writeMultipleRegisters(socketfd, writeAddress, transactionID, writeQuantity, &writeValue, &bufferLength);
+        buffer = writeMultipleRegisters(socketfd, transactionID, writeAddress, writeQuantity, &writeValue, &bufferLength);
         if (buffer == NULL) {
             ERROR("Write Single Register failed\n");
             break;

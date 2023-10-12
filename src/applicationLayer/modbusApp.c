@@ -17,7 +17,10 @@
  * @return socket file descriptor, -1 if error
  */
 int connectToServer(char* ip, int port) {
-    return modbusConnect(ip, port, TIMEOUT_SEC, TIMEOUT_USEC);
+    return modbusConnect(ip,
+                         port,
+                         TIMEOUT_SEC,
+                         TIMEOUT_USEC);
 }
 
 /**
@@ -37,7 +40,9 @@ void disconnectFromServer(int socketfd) {
  * @param len pointer to the length of the request
  * @return uint8_t* pointer to the request created -- must be freed by the caller
  */
-uint8_t* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, int* len) {
+uint8_t* newReadHoldingRegs(uint16_t startingAddress,
+                            uint16_t quantity,
+                            int* len) {
     *len = 5;  // 1 byte for function code + 2 bytes for starting address + 2 bytes for quantity
     uint8_t* pdu = (uint8_t*)malloc(*len);
     if (pdu == NULL) {
@@ -45,7 +50,7 @@ uint8_t* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, int* le
         return NULL;
     }
 
-    pdu[0] = (uint8_t)readHoldingRegsFuncCode;
+    pdu[0] = (uint8_t)(readHoldingRegsFuncCode);
     pdu[1] = (uint8_t)(startingAddress >> 8);
     pdu[2] = (uint8_t)(startingAddress & 0xFF);
     pdu[3] = (uint8_t)(quantity >> 8);
@@ -58,12 +63,17 @@ uint8_t* newReadHoldingRegs(uint16_t startingAddress, uint16_t quantity, int* le
  * @brief send a Read Holding Registers request to the server
  *
  * @param socketfd socket file descriptor
+ * @param id id of the transaction
  * @param startingAddress starting address of the registers to read
  * @param quantity number of registers to read
- * @param response pointer to the response buffer
+ * @param response pointer to the sresponse buffer
  * @return int response length if success, -1 if error
  */
-uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t id, uint16_t quantity, int* rlen) {
+uint8_t* readHoldingRegisters(int socketfd,
+                              uint16_t id,
+                              uint16_t startingAddress,
+                              uint16_t quantity,
+                              int* rlen) {
     if (socketfd < 0) {
         ERROR("invalid socket\n");
         return NULL;
@@ -85,7 +95,9 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t i
     }
 
     int len, sent;
-    uint8_t* packet = newReadHoldingRegs(startingAddress, quantity, &len);
+    uint8_t* packet = newReadHoldingRegs(startingAddress,
+                                         quantity,
+                                         &len);
     if (packet == NULL) {
         return NULL;
     }
@@ -121,7 +133,10 @@ uint8_t* readHoldingRegisters(int socketfd, uint16_t startingAddress, uint16_t i
  * @param len pointer to the length of the request
  * @return uint8_t* pointer to the request created -- must be freed by the caller
  */
-uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint16_t* data, int* len) {
+uint8_t* newWriteMultipleRegs(uint16_t startingAddress,
+                              uint16_t quantity,
+                              uint16_t* data,
+                              int* len) {
     *len = quantity * 2 + 6;  // 2 bytes for starting address + 2 bytes for quantity
     uint8_t* pdu = (uint8_t*)malloc(*len);
     if (pdu == NULL) {
@@ -129,7 +144,7 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
         return NULL;
     }
 
-    pdu[0] = (uint8_t)writeMultipleRegsFuncCode;
+    pdu[0] = (uint8_t)(writeMultipleRegsFuncCode);
     pdu[1] = (uint8_t)(startingAddress >> 8);
     pdu[2] = (uint8_t)(startingAddress & 0xFF);
     pdu[3] = (uint8_t)(quantity >> 8);
@@ -149,13 +164,19 @@ uint8_t* newWriteMultipleRegs(uint16_t startingAddress, uint16_t quantity, uint1
  * @brief send a Write Multiple Registers request to the server
  *
  * @param socketfd socket file descriptor
+ * @param id id of the transaction
  * @param startingAddress starting address of the registers to write
  * @param quantity quantity of registers to write
  * @param data pointer to the data to write
  * @param rlen pointer to the response length
  * @return uint8_t* pointer to the response buffer -- must be freed by the caller
  */
-uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t id, uint16_t quantity, uint16_t* data, int* rlen) {
+uint8_t* writeMultipleRegisters(int socketfd,
+                                uint16_t id,
+                                uint16_t startingAddress,
+                                uint16_t quantity,
+                                uint16_t* data,
+                                int* rlen) {
     if (socketfd < 0) {
         ERROR("invalid socket\n");
         return NULL;
@@ -177,7 +198,10 @@ uint8_t* writeMultipleRegisters(int socketfd, uint16_t startingAddress, uint16_t
     }
 
     int len, sent;
-    uint8_t* packet = newWriteMultipleRegs(startingAddress, quantity, data, &len);
+    uint8_t* packet = newWriteMultipleRegs(startingAddress,
+                                           quantity,
+                                           data,
+                                           &len);
     if (packet == NULL) {
         return NULL;
     }
