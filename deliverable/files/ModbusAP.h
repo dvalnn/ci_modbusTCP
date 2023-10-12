@@ -10,9 +10,8 @@
 #define MODBUS_RHR_QUANTITY_MAX 0x007D  // 125
 #define MODBUS_WMR_QUANTITY_MAX 0x007B  // 123
 
-#define TIMEOUT_SEC 5
+#define TIMEOUT_SEC 1
 #define TIMEOUT_USEC 0
-s
 typedef enum t_functionCode {
     readHoldingRegsFuncCode = 0x03,    // 3
     writeMultipleRegsFuncCode = 0x10,  // 16
