@@ -21,7 +21,7 @@
 
 #endif
 
-#define REMOTEHOST "10.277.113.1"
+#define REMOTEHOST "10.227.113.1"
 #define LOCALHOST "127.0.0.1"
 #define PORT 502
 
@@ -180,7 +180,7 @@ int main() {
 
     transactionID = 5;
 
-    response1 = writeMultipleRegisters(socketfd, startingAddress, transactionID,
+    response1 = writeMultipleRegisters(socketfd, transactionID, startingAddress,
                                        quantity, data2, &rLen1);
     error = checkForExceptions(response1, rLen1, 5);
     if (error != 0) {
