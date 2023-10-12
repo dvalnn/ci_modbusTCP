@@ -50,6 +50,13 @@ uint8_t* modbusReceive(int socketfd, uint16_t id, int* pduLen) {
         return NULL;
     }
 
+    if (adu->unitIdentifier != UNIT_ID) {
+        freeModbusADU(adu);
+        ERROR("unit identifier mismatch\n\treceived: %d\n\texpected: %d\n",
+              adu->unitIdentifier, UNIT_ID);
+        return NULL;
+    }
+
     if (adu->transactionID != id) {
         freeModbusADU(adu);
         ERROR("transaction id mismatch\n\treceived: %d\n\texpected: %d\n",
