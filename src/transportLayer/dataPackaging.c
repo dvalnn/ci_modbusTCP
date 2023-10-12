@@ -7,7 +7,8 @@
 #include "transportLayer/tcpControl.h"
 
 #define MODBUS_MBAP_HEADER_SIZE 7
-#define MALLOC_ERR ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
+#define MALLOC_ERR \
+    ERROR("malloc failed in %s: %s, %d\n", __func__, __FILE__, __LINE__)
 
 /**
  * @brief create a modbus ADU instance
@@ -19,11 +20,8 @@
  * @param pduLen protocol data unit length
  * @return modbusADU* pointer to the created modbus ADU
  */
-ModbusADU* _newModbusADU(uint16_t transactionID,
-                         uint16_t protocolIdentifier,
-                         uint8_t unitIdentifier,
-                         uint8_t* pdu,
-                         int pduLen) {
+ModbusADU* _newModbusADU(uint16_t transactionID, uint16_t protocolIdentifier,
+                         uint8_t unitIdentifier, uint8_t* pdu, int pduLen) {
     ModbusADU* adu = (ModbusADU*)malloc(sizeof(ModbusADU));
     if (adu == NULL) {
         MALLOC_ERR;
@@ -61,8 +59,10 @@ ModbusADU* _newModbusADU(uint16_t transactionID,
  */
 ModbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
     if (transactionID < 0 || pdu == NULL || pduLen <= 0) {
-        ERROR("newModbusADU: invalid parameters\n\ttransactionID: %d, pdu: %p, pduLen: %d\n",
-              transactionID, pdu, pduLen);
+        ERROR(
+            "newModbusADU: invalid parameters\n\ttransactionID: %d, pdu: %p, "
+            "pduLen: %d\n",
+            transactionID, pdu, pduLen);
         return NULL;
     }
 
@@ -75,8 +75,7 @@ ModbusADU* newModbusADU(uint16_t transactionID, uint8_t* pdu, int pduLen) {
  * @param adu pointer to the modbus ADU to free
  */
 void freeModbusADU(ModbusADU* adu) {
-    if (adu == NULL)
-        return;
+    if (adu == NULL) return;
 
     free(adu->pdu);
     free(adu);
@@ -110,7 +109,8 @@ int sendModbusADU(int socketfd, ModbusADU* adu) {
 
     // concatenate the MBAP header and the PDU
     // the MBAP header is not included in the length field
-    uint8_t* packet = (uint8_t*)malloc((MODBUS_MBAP_HEADER_SIZE + pduLen) * sizeof(*packet));
+    uint8_t* packet =
+        (uint8_t*)malloc((MODBUS_MBAP_HEADER_SIZE + pduLen) * sizeof(*packet));
     if (packet == NULL) {
         MALLOC_ERR;
         return -1;
