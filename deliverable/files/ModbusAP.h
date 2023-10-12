@@ -12,6 +12,7 @@
 
 #define TIMEOUT_SEC 1
 #define TIMEOUT_USEC 0
+
 typedef enum t_functionCode {
     readHoldingRegsFuncCode = 0x03,    // 3
     writeMultipleRegsFuncCode = 0x10,  // 16
